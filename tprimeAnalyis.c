@@ -32,7 +32,7 @@ bool tprimeAnalisis::get2Vector( int numpart, int particle, int mother, int gran
     	return results;
 }
 
-bool tprimeAnalisis::get2VectorFromJet( int x, vector<int> &partlist, int mother, int granny, TLorentzVector &vectorReturn, int &charg )
+bool tprimeAnalisis::get2VectorFromJet( int x, vector<int> &partlist, int mother, int granny, TLorentzVector &vectorReturn, int &charg, int &part )
 {
 
 	int numparts = partlist.size();
@@ -41,7 +41,7 @@ bool tprimeAnalisis::get2VectorFromJet( int x, vector<int> &partlist, int mother
 	while( (!results) && (jetloop < numparts) ){
 //		cout << "In jet Looking for : " << partlist[jetloop]<<endl;
 		results = get2Vector( x, partlist[jetloop], mother, granny, vectorReturn, charg );
-//		if( results ){results = false; cout << "jet loop result for " << x << endl;} 
+		if( results ){part = partlist[jetloop];} 
 		jetloop++;
 	}
 	
@@ -50,7 +50,7 @@ bool tprimeAnalisis::get2VectorFromJet( int x, vector<int> &partlist, int mother
 
 }
 
-bool tprimeAnalisis::get2VectorFromLists( int numpart, vector<int> particle, vector<int> mother, int granny, TLorentzVector &vectorReturn, int &charg )
+bool tprimeAnalisis::get2VectorFromLists( int numpart, vector<int> particle, vector<int> mother, int granny, TLorentzVector &vectorReturn, int &charg, int &part )
 {
 
 	int numparts = mother.size();
@@ -58,7 +58,7 @@ bool tprimeAnalisis::get2VectorFromLists( int numpart, vector<int> particle, vec
         int jetloop = 0;
         while( (!results) && (jetloop < numparts) ){
 //              cout << "In jet Looking for : " << partlist[jetloop]<<endl;
-                results = get2VectorFromJet( numpart, particle, mother[jetloop], granny, vectorReturn, charg );
+                results = get2VectorFromJet( numpart, particle, mother[jetloop], granny, vectorReturn, charg, part );
 //              if( results ){results = false; cout << "jet loop result for " << x << endl;} 
                 jetloop++;
         }
@@ -80,6 +80,20 @@ TCanvas* drawPrint( TH1D* hist, string type, string title, string xtitle, string
 TCanvas* drawPrint( TH1D* hist, string title, string xtitle, string ytitle )
 {
         return drawPrint( hist, ".png", title, xtitle, ytitle );
+}
+
+TCanvas* drawPrintMulti( vector<TH1D*> histlist, string type, string title, string xtitle, string ytitle )
+{
+        TCanvas *c = getTDRCanvas( title );
+        tdrHistDrawMulti( histlist, c, xtitle, ytitle );
+        string savetitle( title + type );
+        c->SaveAs( savetitle.c_str() );
+        return c;
+}
+
+TCanvas* drawPrintMulti( vector<TH1D*> histlist, string title, string xtitle, string ytitle )
+{
+        return drawPrintMulti( histlist, ".png", title, xtitle, ytitle );
 }
 
 TCanvas* drawPrint2D( TH2D* hist, string type, string title, string xtitle, string ytitle )
@@ -155,11 +169,16 @@ void tprimeAnalisis::Loop()
     int qqcnt = 0;
     int bgcnt = 0;
     int evcnt = 0;
+    
+    int qqw_qcnt[8] = { 0,0,0,0,0,0,0,0 };
+    int wqq_qcnt[8] = { 0,0,0,0,0,0,0,0 };
 
-//    int qqstrgcnt = 0;
-//    int qqcharmcnt = 0;
-//    int qwstrgcnt = 0;
-//    int qwcharmcnt = 0;
+    int Ht = 0;
+    int part = 0;
+
+    int htcut = 0;
+    int higgscut = 0;
+    int topcut = 0;
 
     vector<TLorentzVector> qwjet;
     vector<TLorentzVector> bhTjet;
@@ -190,7 +209,7 @@ void tprimeAnalisis::Loop()
     TH1D *im_bg_hist = new TH1D( "Mass of b from Gluon","Mass of b from Gluon", 100, 0, 10 );
     TH1D *eta_bg_hist = new TH1D("Eta of b from Gluon", "Eta of b from Gluon", 50, -5, 5);
 //qq        
-    TH1D *pt_qq_hist = new TH1D("Pt of q from qW", "Pt of q from qW", 50, 0, 1000);
+    TH1D *pt_qq_hist = new TH1D("Pt of q from qW", "Pt of q from qW", 25, 0, 500);
     TH1D *im_qq_hist = new TH1D( "Mass of q from qW","Mass of q from qW", 100, 0, 2 );
     TH1D *eta_qq_hist = new TH1D("Eta of q from qW", "Eta of q from qW", 50, -5, 5);
 //tT        
@@ -202,11 +221,11 @@ void tprimeAnalisis::Loop()
     TH1D *eta_w_hist = new TH1D("Eta W", "Eta W", 50, -5, 5);    
     TH1D *im_w_hist = new TH1D( "Mass W","Mass of W", 100, 0, 200 );
 //hT
-    TH1D *pt_higgs_hist = new TH1D("Pt Higgs","Pt Higgs", 100, 0, 2000 );
+    TH1D *pt_higgs_hist = new TH1D("Pt Higgs","Pt Higgs", 200, 0, 4000 );
     TH1D *eta_higgs_hist = new TH1D("Eta of Higgs", "Eta of HIggs", 50, -5,5 );
     TH1D *im_higgs_hist = new TH1D("Mass Higgs","Mass of the Higgs", 100, 100, 150 );
 //T
-    TH1D *im_tprime_hist = new TH1D( "Mass TPrime","Mass tPrime", 100, 2000, 4000 );
+    TH1D *im_tprime_hist = new TH1D( "Mass TPrime","Mass tPrime", 200, 0, 4000 );
     TH1D *pt_tprime_hist = new TH1D( "Pt TPrime","Pt of tPrime", 50, 0, 1000 );    
     TH1D *eta_tprime_hist = new TH1D( "Eta TPrime","Eta of tPrime", 50, -5, 5 );
 //qwt   <<<<<<<<<<<<
@@ -222,17 +241,17 @@ void tprimeAnalisis::Loop()
     TH1D *im_bhT_hist = new TH1D( "Mass bh Jet","Mass of bh Jet", 100, 0, 10 );
     TH1D *eta_bhT_hist = new TH1D("Eta bh Jet", "Eta bh Jet", 50, -5, 5);
 //dr
-    TH1D *drmin_top_hist = new TH1D( "Min DeltaR Top", "Min DeltaR of Top", 40, 0, 4 );
-    TH1D *drmax_top_hist = new TH1D( "Max DeltaR Top", "Max DeltaR of Top", 40, 0, 4 );
+    TH1D *dr_tmin_hist = new TH1D( "Min DeltaR Top", "Min DeltaR of Top", 40, 0, 4 );
+    TH1D *dr_tmax_hist = new TH1D( "Max DeltaR Top", "Max DeltaR of Top", 40, 0, 4 );
     TH1D *dr_higgs_hist = new TH1D( "DelaR Higgs", "DeltaR Higgs", 40, 0, 4 );
     TH1D *dr_w_hist = new TH1D( "DeltaR W+", "DeltaR of W+", 40, 0, 4 );
     TH1D *dr_wb_hist = new TH1D( "DeltaR of wb Jet", "DeltaR of wb Jet", 40, 0, 4 );
 //dr vs Pt
-    TH2D *drvpt_top_hist = new TH2D( "DeltaR vs Pt of Top", "DeltaR vs Pt of Top", 50, 0, 1000, 40, 0, 4 );
-    TH2D *drvpt_higgs_hist = new TH2D( "DeltaR vs Pt of Higgs", "DeltaR vs Pt of Higgs", 50, 0, 1000, 40, 0, 4 );
+    TH2D *drvpt_top_hist = new TH2D( "DeltaR vs Pt of Top", "DeltaR vs Pt of Top", 100, 0, 2000, 40, 0, 4 );
+    TH2D *drvpt_higgs_hist = new TH2D( "DeltaR vs Pt of Higgs", "DeltaR vs Pt of Higgs", 100, 0, 2000, 40, 0, 4 );
     TH2D *drvpt_w_hist = new TH2D( "DeltaR vs Pt of W", "DeltaR vs Pt of W", 50, 0, 1000, 40, 0, 4 );
 //Ht
-    TH1D *Ht_hist = new TH1D( "Ht", "Ht", 50, 0, 2000 );
+    TH1D *Ht_hist = new TH1D( "Ht", "Ht", 500, 0, 10000 );
 
 
     Long64_t nbytes = 0, nb = 0;
@@ -262,15 +281,15 @@ void tprimeAnalisis::Loop()
 
 	    vReturn.SetPtEtaPhiM(0,0,0,0);
 	    charg = 0;
-            if( get2VectorFromLists( partnum, bglist, qglist, none, vReturn, charg )){ bgcnt++; bgvec = vReturn;}
-            if( get2VectorFromLists( partnum, qglist, qglist, none, vReturn, charg )){ qqcnt++; qqvec = vReturn;}
+            if( get2VectorFromLists( partnum, bglist, qglist, none, vReturn, charg, part )){ bgcnt++; bgvec = vReturn;}
+            if( get2VectorFromLists( partnum, qglist, qglist, none, vReturn, charg, part )){ qqcnt++; qqvec = vReturn;}
             if( get2Vector( partnum, top, tprime, none, vReturn, charg )){ tTcnt++; tTvec = vReturn;}
             if( get2Vector( partnum, w, top, tprime, vReturn, charg )) { wtTcnt++; wtTvec = vReturn; }            
 	    if( get2Vector( partnum, higgs, tprime, none, vReturn, charg )) { hTcnt++; hTvec = vReturn;}
 	    if( get2Vector( partnum, tprime, none, none, vReturn, charg )) { Tcnt++; Tvec = vReturn;}
             if( get2Vector( partnum, bottom, top, tprime, vReturn, charg )) {btTcnt++; btTvec = vReturn;}
             if( get2Vector( partnum, bottom, higgs, tprime, vReturn, charg )){ bhTcnt++; bhTjet.push_back( vReturn ); } 
-	    if( get2VectorFromJet( partnum, qjet, w, none, vReturn, charg )){ qwcnt++; qwjet.push_back( vReturn );}
+	    if( get2VectorFromJet( partnum, qjet, w, none, vReturn, charg, part )){ qwcnt++; qwjet.push_back( vReturn );}
 
         }// find particles in above loop
 
@@ -283,17 +302,23 @@ void tprimeAnalisis::Loop()
 	double dr_tmax = 0;
         double dr_tmin = 0;
         double dr_wb = wtTvec.DeltaR( btTvec );
-	if( dr1 > dr2 ){ if( dr1 > dr3 ){ dr_tmax = dr1;} else { if( dr2 > dr3 ){ dr_tmax = dr2;} else{ dr_tmax = dr3; }}}	
-	if( dr1 < dr2 ){ if( dr1 < dr3 ){ dr_tmin = dr1;} else { if( dr2 < dr3 ){ dr_tmin = dr2;} else{ dr_tmin = dr3; }}} 
+	if( dr1 > dr2 ){ if( dr1 > dr3 ){ dr_tmax = dr1;} else { dr_tmax = dr3;}} else { if( dr2 > dr3 ){ dr_tmax = dr2;} else{ dr_tmax = dr3; }}	
+	if( dr1 < dr2 ){ if( dr1 < dr3 ){ dr_tmin = dr1;} else { dr_tmin = dr3;}} else { if( dr2 < dr3 ){ dr_tmin = dr2;} else{ dr_tmin = dr3; }} 
 	double dr_h = (bhTjet[0]).DeltaR( bhTjet[1] );
 	double dr_w = dr1;
 
-	double Ht = bgvec.Pt() + qqvec.Pt() + tTvec.Pt() + wtTvec() + hTvec() + Tvec.Pt() + btTvec().Pt() + bhTjet[0].Pt() + bhTjet[1].Pt()+ qwjet[0].Pt() + qwjet[1].Pt();
+	Ht = bgvec.Pt() + qqvec.Pt() + btTvec.Pt() + (bhTjet[0]).Pt() + (bhTjet[1]).Pt()+ (qwjet[0]).Pt() + (qwjet[1]).Pt();
 	
 	qwjet.clear();
 	bhTjet.clear();
-//	cout << "momentum " << tVec.Pt() << endl;
+//	Fill cutts<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
 
+	if( Ht > 1100 ){ htcut++;
+	if( (hTvec.Pt() > 300 ) && ( abs( hTvec.Eta() ) < 2.4 ) ){ higgscut++;
+	if( (tTvec.Pt() > 400 ) && ( abs( tTvec.Eta() ) < 2.4 ) ){ topcut++;
+
+//      fills
         pt_bg_hist->Fill( bgvec.Pt() );
         eta_bg_hist->Fill( bgvec.Eta() );
         im_bg_hist->Fill( bgvec.M() );
@@ -332,19 +357,30 @@ void tprimeAnalisis::Loop()
         eta_btT_hist->Fill( btTvec.Eta() );
         im_btT_hist->Fill( btTvec.M() );
 
-	dr_top_hist->Fill( dr_tmin );
-	dr_top_hist->Fill( dr_tmax );
+	dr_tmin_hist->Fill( dr_tmin );
+	dr_tmax_hist->Fill( dr_tmax );
 	dr_wb_hist->Fill( dr_wb );
         dr_w_hist->Fill( dr_w );
 	dr_higgs_hist->Fill( dr_h );
 
-        drvpt_top_hist->Fill( tTvec.Pt(), dr_t );
+        drvpt_top_hist->Fill( tTvec.Pt(), dr_tmax);
 	drvpt_higgs_hist->Fill( hTvec.Pt(), dr_h );
         drvpt_w_hist->Fill( wtTvec.Pt(), dr_w );
 	
 	Ht_hist->Fill( Ht );
+	
+
+	}//<<<<<<<  top Pt > 400Gev, |eta| < 2.4
+	}//<<<<<<  Higs Pt > 300GeV, |eta| < 2.4
+	}//<<<<<  Ht < 1100  cut
+	
 
     }// calc values and fill histograms
+
+    vector<TH1D*> histlist;
+    histlist.push_back( dr_tmax_hist );
+    histlist.push_back( dr_tmin_hist );
+    histlist.push_back( dr_wb_hist );
 
     setTDRStyle();
 
@@ -364,7 +400,10 @@ void tprimeAnalisis::Loop()
     TCanvas *c11 = drawPrint( eta_tprime_hist, "Eta of TPrime", "Eta", "Events/0.2");
     TCanvas *c12 = drawPrint( im_tprime_hist, "Mass of TPrime", "Mass (GeV)", "Events/20GeV");
 
-    TCanvas *c13 = drawPrint( dr_top_hist, "Delat R of Top", "DeltaR", "Events/0.2");
+    TCanvas *c13a = drawPrint( dr_tmax_hist, "Delat R of Top Max", "DeltaR", "Events/0.2");
+    TCanvas *c13b = drawPrint( dr_tmin_hist, "Delat R of Top Min", "DeltaR", "Events/0.2");
+    TCanvas *c13c = drawPrint( dr_wb_hist, "Delat R of wb Jet", "DeltaR", "Events/0.2");
+    TCanvas *c13d = drawPrintMulti( histlist, "Delat R of wb Jet, Min&Max Top Jet", "DeltaR", "Events/0.2");
     TCanvas *c14 = drawPrint( dr_w_hist, "Delta R of W", "DeltaR", "Events/0.2" );
     TCanvas *c15 = drawPrint( dr_higgs_hist, "Delta R of Higgs", "DeltaR", "Events/0.2" );
     
@@ -392,7 +431,7 @@ void tprimeAnalisis::Loop()
     TCanvas *c32 = drawPrint( eta_qq_hist, "Eta of q from qW","Eta", "Events/0.2" );
     TCanvas *c33 = drawPrint( im_qq_hist, "Mass of q from qW","Mass (GeV)", "Events/0.02GeV" );
 
-    TCanvas *c34 = drawPrintComb( pt_top_hist, dr_top_hist, drvpt_top_hist, "DeltaR vs Pt of Top Combo" ); 
+    TCanvas *c34 = drawPrintComb( pt_top_hist, dr_tmax_hist, drvpt_top_hist, "DeltaR vs Pt of Top Combo" ); 
     TCanvas *c35 = drawPrintComb( pt_higgs_hist, dr_higgs_hist, drvpt_higgs_hist, "DeltaR vs Pt of Higgs Combo" );
     TCanvas *c36 = drawPrintComb( pt_w_hist, dr_w_hist, drvpt_w_hist, "DeltaR vs Pt of W Combo" );
    
@@ -408,6 +447,9 @@ void tprimeAnalisis::Loop()
     cout << "Number of qq  found: " << qqcnt << endl;/////
     cout << "Number of bg  found: " << bgcnt << endl;
     cout << "Number of events found: " << evcnt << endl;
+    cout << "Number of events after Ht cut found: " << htcut << endl;
+    cout << "Number of events after Higgs cut found: " << higgscut << endl;
+    cout << "Number of events after top cut found: " << topcut << endl;
     return;
 
 }//print histogram aboves

@@ -20,7 +20,7 @@
 #include "TLorentzVector.h"
 #include <vector>
 
-const string rootfile("WbT_M2_hadronic_pythia_lhe_events.root");
+const string rootfile("WbT_M1_pythia_lhe_events.root");
 
 class tprimeAnalisis {
 public :
@@ -120,8 +120,8 @@ public :
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
    virtual bool	    get2Vector( int x, int particle, int mother, int granny, TLorentzVector &vectorReturn, int &charg );
-   virtual bool	    get2VectorFromJet( int x, vector<int> &partlist, int mother, int granny, TLorentzVector &vectorReturn, int &charg );
-   virtual bool     get2VectorFromLists( int numpart, vector<int> particle, vector<int> mother, int granny, TLorentzVector &vectorReturn, int &charg );
+   virtual bool	    get2VectorFromJet( int x, vector<int> &partlist, int mother, int granny, TLorentzVector &vectorReturn, int &charg, int &part );
+   virtual bool     get2VectorFromLists( int numpart, vector<int> particle, vector<int> mother, int granny, TLorentzVector &vectorReturn, int &charg, int &part );
 
 };
 

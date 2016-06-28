@@ -53,6 +53,33 @@ void tdrHist2DDraw( TH2D* &hist, TCanvas* &can, string xtit, string ytit )
 
 }
 
+// draws a histogram when TH1F, canvas, and x,y titles provided.
+void tdrHistDrawMulti( vector<TH1D*> &hist, TCanvas* &can, string xtit, string ytit )
+{
+    can->cd();
+    for( int i = 0 ; i < hist.size(); i++)
+    {
+      hist[i]->UseCurrentStyle();
+      hist[i]->GetXaxis()->CenterTitle(true);
+      hist[i]->GetXaxis()->SetTitle(xtit.c_str());
+      hist[i]->GetYaxis()->CenterTitle(true);
+      hist[i]->GetYaxis()->SetTitle(ytit.c_str());
+      hist[i]->GetYaxis()->SetRangeUser( 0, 2500 );
+      if( i == 0 ){
+	 hist[i]->SetLineColor(i+2);
+         hist[i]->Draw();
+	 gPad->Update();
+      }else{
+	 hist[i]->SetLineColor(i+2);
+         hist[i]->Draw("same");
+	 gPad->Update();
+      }
+    }
+    gPad->Update();
+    return;
+
+}
+
 // returns a canvas if title is specified.
 TCanvas* getTDRCanvas( string title )
 {
@@ -70,8 +97,8 @@ void setTDRStyle() {
 // For the canvas:
   tdrStyle->SetCanvasBorderMode(0);
   tdrStyle->SetCanvasColor(kWhite);
-  tdrStyle->SetCanvasDefH(600); //Height of canvas
-  tdrStyle->SetCanvasDefW(600); //Width of canvas
+  tdrStyle->SetCanvasDefH(can_y_width); //Height of canvas
+  tdrStyle->SetCanvasDefW(can_x_width); //Width of canvas
   tdrStyle->SetCanvasDefX(0);   //POsition on screen
   tdrStyle->SetCanvasDefY(0);
 
@@ -126,12 +153,12 @@ void setTDRStyle() {
   tdrStyle->SetOptStat(1); // To display the mean and RMS:   SetOptStat("mr");
   tdrStyle->SetStatColor(kWhite);
   tdrStyle->SetStatFont(22);
-  tdrStyle->SetStatFontSize(0.025);
+  tdrStyle->SetStatFontSize(0.03);
   tdrStyle->SetStatTextColor(1);
   tdrStyle->SetStatFormat("6.4g");
   tdrStyle->SetStatBorderSize(1);
-  tdrStyle->SetStatH(0.1);
-  tdrStyle->SetStatW(0.15);
+  tdrStyle->SetStatH(0.20);
+  tdrStyle->SetStatW(0.25);
   // tdrStyle->SetStatStyle(Style_t style = 1001);
   tdrStyle->SetStatX( 0.825 );
   tdrStyle->SetStatY( 0.85 );
