@@ -38,6 +38,22 @@ void tdrHistDraw( TH1D* &hist, TCanvas* &can, string xtit, string ytit )
 
 }
 
+// draws a histogram when TH1F, canvas, and x,y titles provided.
+void tdrHistDrawLogX( TH1D* &hist, TCanvas* &can, string xtit, string ytit )
+{
+    can->cd();
+    hist->UseCurrentStyle();
+    gPad->SetLogx();
+    hist->GetXaxis()->CenterTitle(true);
+    hist->GetXaxis()->SetTitle(xtit.c_str());
+    hist->GetYaxis()->CenterTitle(true);
+    hist->GetYaxis()->SetTitle(ytit.c_str());
+    hist->Draw();
+    gPad->Update();
+    return;
+
+}
+
 // draws a 2d histogram when TH2F, canvas, and x,y titles provided.
 void tdrHist2DDraw( TH2D* &hist, TCanvas* &can, string xtit, string ytit )
 {

@@ -4,6 +4,17 @@
 #include "jwk_ku_tdr_style.h"
 #include "CombineHistograms.h"
 
+string rpsb(string temp)
+{
+   int position = temp.find( " " ); // find first space
+   while ( position != string::npos ) 
+   {
+      temp.replace( position, 1, "_" );
+      position = temp.find( " ", position + 1 );
+   } 
+   return temp;
+}
+
 
 bool tprimeAnalisis::get2Vector( int numpart, int particle, int mother, int granny, TLorentzVector &vectorReturn, int &charg )
 {
@@ -16,7 +27,7 @@ bool tprimeAnalisis::get2Vector( int numpart, int particle, int mother, int gran
 	int gran = Particle_PID[Particle_Mother1[Particle_Mother1[numpart]]];
 	int level = Particle_Status[numpart];	
 
-//    	cout << "Found       " << level << " " << part << " " << mom << " " << gran << endl;
+  //  	cout << "Found       " << level << " " << part << " " << mom << " " << gran << endl;
     	if( level == 2  ){
         	if( abs(part) == particle ){  
         		if( ( mother == 0 ) || ( abs( mom ) == mother ) ){ 
@@ -28,7 +39,7 @@ bool tprimeAnalisis::get2Vector( int numpart, int particle, int mother, int gran
 			}	
 		}
     	}		
-//  	cout << "Match? :  " << results << endl;
+  //	cout << "Match? :  " << results << endl;
     	return results;
 }
 
@@ -39,7 +50,7 @@ bool tprimeAnalisis::get2VectorFromJet( int x, vector<int> &partlist, int mother
 	bool results = false;
 	int jetloop = 0;
 	while( (!results) && (jetloop < numparts) ){
-//		cout << "In jet Looking for : " << partlist[jetloop]<<endl;
+  //		cout << "In jet Looking for : " << partlist[jetloop]<<endl;
 		results = get2Vector( x, partlist[jetloop], mother, granny, vectorReturn, charg );
 		if( results ){part = partlist[jetloop];} 
 		jetloop++;
@@ -57,83 +68,115 @@ bool tprimeAnalisis::get2VectorFromLists( int numpart, vector<int> particle, vec
         bool results = false;
         int jetloop = 0;
         while( (!results) && (jetloop < numparts) ){
-//              cout << "In jet Looking for : " << partlist[jetloop]<<endl;
+      //          cout << "In jet Looking for : " << mother[jetloop]<<endl;
                 results = get2VectorFromJet( numpart, particle, mother[jetloop], granny, vectorReturn, charg, part );
-//              if( results ){results = false; cout << "jet loop result for " << x << endl;} 
                 jetloop++;
         }
 
-//      cout << "jet Match? : " << results << endl;
+    //    cout << "jet Match? : " << results << endl;
         return results;
 
 }
 
-TCanvas* drawPrint( TH1D* hist, string type, string title, string xtitle, string ytitle )
+TCanvas* drawPrint( TH1D* hist, string type, string title, string xtitle, string ytitle, string rfname)
 {
-	TCanvas *c = getTDRCanvas( title );
+	TCanvas *c = getTDRCanvas( title + rfname );
 	tdrHistDraw( hist, c, xtitle, ytitle );
-	string savetitle( title + type );
+	string savetitle( rfname + "_" + rpsb(title) + type );
 	c->SaveAs( savetitle.c_str() );
 	return c;
 }
 
-TCanvas* drawPrint( TH1D* hist, string title, string xtitle, string ytitle )
+TCanvas* drawPrint( TH1D* hist, string title, string xtitle, string ytitle, string rfname)
 {
-        return drawPrint( hist, ".png", title, xtitle, ytitle );
+        return drawPrint( hist, ".png", title, xtitle, ytitle, rfname );
 }
 
-TCanvas* drawPrintMulti( vector<TH1D*> histlist, string type, string title, string xtitle, string ytitle )
+TCanvas* drawPrintLogX( TH1D* hist, string type, string title, string xtitle, string ytitle, string rfname)
 {
-        TCanvas *c = getTDRCanvas( title );
+        TCanvas *c = getTDRCanvas( title + rfname );
+        tdrHistDrawLogX( hist, c, xtitle, ytitle );
+        string savetitle( rfname + "_" + rpsb(title) + type );
+        c->SaveAs( savetitle.c_str() );
+        return c;
+}
+
+TCanvas* drawPrintLogX( TH1D* hist, string title, string xtitle, string ytitle, string rfname )
+{
+        return drawPrintLogX( hist, ".png", title, xtitle, ytitle, rfname );
+}
+
+TCanvas* drawPrintMulti( vector<TH1D*> histlist, string type, string title, string xtitle, string ytitle, string rfname )
+{
+        TCanvas *c = getTDRCanvas( title + rfname );
         tdrHistDrawMulti( histlist, c, xtitle, ytitle );
-        string savetitle( title + type );
+        string savetitle( rfname + "_" + rpsb(title) + type );
         c->SaveAs( savetitle.c_str() );
         return c;
 }
 
-TCanvas* drawPrintMulti( vector<TH1D*> histlist, string title, string xtitle, string ytitle )
+TCanvas* drawPrintMulti( vector<TH1D*> histlist, string title, string xtitle, string ytitle, string rfname )
 {
-        return drawPrintMulti( histlist, ".png", title, xtitle, ytitle );
+        return drawPrintMulti( histlist, ".png", title, xtitle, ytitle, rfname );
 }
 
-TCanvas* drawPrint2D( TH2D* hist, string type, string title, string xtitle, string ytitle )
+TCanvas* drawPrint2D( TH2D* hist, string type, string title, string xtitle, string ytitle, string rfname )
 {
-        TCanvas *c = getTDRCanvas( title );
-        tdrHist2DDraw( hist, c, xtitle, ytitle );
-        string savetitle( title + type );
+        TCanvas *c = getTDRCanvas( title + rfname );
+        tdrHist2DDraw( hist, c, xtitle, ytitle );        
+        string savetitle( rfname + "_" + rpsb(title) + type );
         c->SaveAs( savetitle.c_str() );
         return c;
 }
 
-TCanvas* drawPrint2D( TH2D* hist, string title, string xtitle, string ytitle )
+TCanvas* drawPrint2D( TH2D* hist, string title, string xtitle, string ytitle, string rfname)
 {
-        return drawPrint2D( hist, ".png", title, xtitle, ytitle );
+        return drawPrint2D( hist, ".png", title, xtitle, ytitle , rfname );
 }
 
-TCanvas* drawPrintComb( TH1D* hist1, TH1D* hist2, TH2D* hist3, string type, string title )
+TCanvas* drawPrintComb( TH1D* hist1, TH1D* hist2, TH2D* hist3, string type, string title, string rfname )
 {
-        TCanvas *c = getTDRCanvas( title );
+        TCanvas *c = getTDRCanvas( title + rfname );
 	CombineHistograms( hist1, hist2, hist3, c );
-        string savetitle( title + type );
+        string savetitle( rfname + "_" + rpsb(title) + type );
         c->SaveAs( savetitle.c_str() );
         return c;
 }
 
-TCanvas* drawPrintComb( TH1D* hist1, TH1D* hist2, TH2D* hist3, string title )
+TCanvas* drawPrintComb( TH1D* hist1, TH1D* hist2, TH2D* hist3, string title, string rfname )
 {
-        return drawPrintComb( hist1, hist2, hist3, ".png", title );
+        return drawPrintComb( hist1, hist2, hist3, ".png", title, rfname );
+}
+
+bool passcut( int cutrun, TLorentzVector &hTvec, TLorentzVector &tTvec, double &Ht, int &htcut, int &higgscut, int &topcut ){
+
+/*      if( Ht > 1100 ){ htcut++;
+        if( (hTvec.Pt() > 300 ) && ( abs( hTvec.Eta() ) < 2.4 ) ){ higgscut++;
+        if( (tTvec.Pt() > 400 ) && ( abs( tTvec.Eta() ) < 2.4 ) ){ topcut++;
+*/
+	bool result = false;
+
+	if( cutrun == 0 ){ result = true; }
+	else if( ( cutrun == 1 ) && ( Ht > 1100 ) ) { htcut++; result = true; }
+	else if( ( cutrun == 2 ) && (hTvec.Pt() > 300 ) && ( abs( hTvec.Eta() ) < 2.4 ) ){ higgscut++; result = true; }
+        else if( ( cutrun == 3 ) && (tTvec.Pt() > 400 ) && ( abs( tTvec.Eta() ) < 2.4 ) ){ topcut++; result = true; }
+	
+	return result;
 }
 
 void tprimeAnalisis::Loop()
 {
    if (fChain == 0) return;
 
+  string cutname[4] = { "_none", "_htcut", "_higgscut", "_topcut" };
+  for( int cutrun = 0; cutrun < (4); cutrun++ ){
+
     Long64_t nentries = fChain->GetEntriesFast();
 
-    int none = 0;
 
 /////////////////////////////////////////
 
+    int none = 0;
     int down = 1;
     int up = 2;
     int strange = 3;
@@ -173,7 +216,8 @@ void tprimeAnalisis::Loop()
     int qqw_qcnt[8] = { 0,0,0,0,0,0,0,0 };
     int wqq_qcnt[8] = { 0,0,0,0,0,0,0,0 };
 
-    int Ht = 0;
+    double Ht = 0;
+    double Heta = 0; 
     int part = 0;
 
     int htcut = 0;
@@ -204,6 +248,9 @@ void tprimeAnalisis::Loop()
 //    qglist.push_back(top);
 //    qglist.push_back(bottom);
 
+//  for( int cutrun = 0; cutrun < (number_of_cuts + 1); cutrun++ ){ 
+    
+   cout << "Starting Cut :" << cutname[cutrun] << endl;
 //bg        
     TH1D *pt_bg_hist = new TH1D("Pt of b from Gluon", "Pt of b from Gluon", 50, 0, 1000);
     TH1D *im_bg_hist = new TH1D( "Mass of b from Gluon","Mass of b from Gluon", 100, 0, 10 );
@@ -221,7 +268,7 @@ void tprimeAnalisis::Loop()
     TH1D *eta_w_hist = new TH1D("Eta W", "Eta W", 50, -5, 5);    
     TH1D *im_w_hist = new TH1D( "Mass W","Mass of W", 100, 0, 200 );
 //hT
-    TH1D *pt_higgs_hist = new TH1D("Pt Higgs","Pt Higgs", 200, 0, 4000 );
+    TH1D *pt_higgs_hist = new TH1D("Pt Higgs","Pt Higgs", 100, 0, 2000 );
     TH1D *eta_higgs_hist = new TH1D("Eta of Higgs", "Eta of HIggs", 50, -5,5 );
     TH1D *im_higgs_hist = new TH1D("Mass Higgs","Mass of the Higgs", 100, 100, 150 );
 //T
@@ -251,12 +298,13 @@ void tprimeAnalisis::Loop()
     TH2D *drvpt_higgs_hist = new TH2D( "DeltaR vs Pt of Higgs", "DeltaR vs Pt of Higgs", 100, 0, 2000, 40, 0, 4 );
     TH2D *drvpt_w_hist = new TH2D( "DeltaR vs Pt of W", "DeltaR vs Pt of W", 50, 0, 1000, 40, 0, 4 );
 //Ht
-    TH1D *Ht_hist = new TH1D( "Ht", "Ht", 500, 0, 10000 );
+    TH1D *Ht_hist = new TH1D( "Ht", "Ht", 200, 0, 4000 );
+    TH1D *Heta_hist = new TH1D( "SumEta", "SumEta", 50, -5, 5 );
 
 
     Long64_t nbytes = 0, nb = 0;
     //loop through events
-    cout << "Number of events : " << nentries << endl;
+//    cout << "Number of events : " << nentries << endl;
     for (Long64_t jentry=0; jentry<nentries;jentry++) {
         Long64_t ientry = LoadTree(jentry);
         if (ientry < 0) break;
@@ -276,9 +324,9 @@ void tprimeAnalisis::Loop()
         int charg = 0;
 
         //Loop Through Particles
-//	cout << "Number of particles in an event : " << *Event_Nparticles << endl;
+//	cout << "Looping Particles: Number of particles in the event : " << *Event_Nparticles << endl;
         for(int partnum=0; partnum < *Event_Nparticles; partnum++){ // partnum = particle number
-
+  //          cout << " in loop with particle number :" << partnum << endl;
 	    vReturn.SetPtEtaPhiM(0,0,0,0);
 	    charg = 0;
             if( get2VectorFromLists( partnum, bglist, qglist, none, vReturn, charg, part )){ bgcnt++; bgvec = vReturn;}
@@ -290,10 +338,12 @@ void tprimeAnalisis::Loop()
             if( get2Vector( partnum, bottom, top, tprime, vReturn, charg )) {btTcnt++; btTvec = vReturn;}
             if( get2Vector( partnum, bottom, higgs, tprime, vReturn, charg )){ bhTcnt++; bhTjet.push_back( vReturn ); } 
 	    if( get2VectorFromJet( partnum, qjet, w, none, vReturn, charg, part )){ qwcnt++; qwjet.push_back( vReturn );}
+      
 
         }// find particles in above loop
 
 // calc varibles
+//	cout << "Calcating values for event" << endl;
 	evcnt++;
 	// delta_R_top
 	double dr1 = (qwjet[0]).DeltaR( qwjet[1] );
@@ -308,16 +358,15 @@ void tprimeAnalisis::Loop()
 	double dr_w = dr1;
 
 	Ht = bgvec.Pt() + qqvec.Pt() + btTvec.Pt() + (bhTjet[0]).Pt() + (bhTjet[1]).Pt()+ (qwjet[0]).Pt() + (qwjet[1]).Pt();
-	
+	Heta = bgvec.Eta() + qqvec.Eta() + btTvec.Eta() + (bhTjet[0]).Eta() + (bhTjet[1]).Eta()+ (qwjet[0]).Eta() + (qwjet[1]).Eta();
+
 	qwjet.clear();
 	bhTjet.clear();
 //	Fill cutts<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
-
-	if( Ht > 1100 ){ htcut++;
-	if( (hTvec.Pt() > 300 ) && ( abs( hTvec.Eta() ) < 2.4 ) ){ higgscut++;
-	if( (tTvec.Pt() > 400 ) && ( abs( tTvec.Eta() ) < 2.4 ) ){ topcut++;
-
+//	cout << "Checking Cut for cut level :" << cutrun << endl;
+	if( passcut( cutrun, hTvec, tTvec, Ht, htcut, higgscut, topcut ) ) {
+//	cout << "Filling histograms" << endl;
 //      fills
         pt_bg_hist->Fill( bgvec.Pt() );
         eta_bg_hist->Fill( bgvec.Eta() );
@@ -368,91 +417,125 @@ void tprimeAnalisis::Loop()
         drvpt_w_hist->Fill( wtTvec.Pt(), dr_w );
 	
 	Ht_hist->Fill( Ht );
+	Heta_hist->Fill( Heta );
 	
 
-	}//<<<<<<<  top Pt > 400Gev, |eta| < 2.4
-	}//<<<<<<  Higs Pt > 300GeV, |eta| < 2.4
-	}//<<<<<  Ht < 1100  cut
-	
-
+ 	}//<<<<<<  cuts
+       
+  //      cout << "Event Finished" << endl;   
     }// calc values and fill histograms
-
+    cout << "Print and Draw Histograms" << endl;
     vector<TH1D*> histlist;
     histlist.push_back( dr_tmax_hist );
     histlist.push_back( dr_tmin_hist );
     histlist.push_back( dr_wb_hist );
 
     setTDRStyle();
+    string savename = rootfilename + cutname[cutrun];
 
-    TCanvas *c1 = drawPrint( pt_top_hist,"Pt of the Top", "Pt (GeV)", "Events/20GeV");   
-    TCanvas *c2 = drawPrint( eta_top_hist,"Eta of the Top", "Eta", "Events/0.2");
-    TCanvas *c3 = drawPrint( im_top_hist,"Mass of Top", "Mass (GeV)", "Events/20GeV");
+    TCanvas *c1 = drawPrint( pt_top_hist,"Pt of the Top", "Pt (GeV)", "Events/20GeV", savename );   
+    TCanvas *c2 = drawPrint( eta_top_hist,"Eta of the Top", "Eta", "Events/0.2", savename);
+    TCanvas *c3 = drawPrint( im_top_hist,"Mass of Top", "Mass (GeV)", "Events/20GeV", savename);
 
-    TCanvas *c4 = drawPrint( im_w_hist,"Mass of the W", "Mass (GeV)", "Events/2GeV");    
-    TCanvas *c5 = drawPrint( pt_w_hist,"Pt of the W", "Pt (GeV)", "Events/20GeV");   
-    TCanvas *c6 = drawPrint( eta_w_hist,"Eta of the W", "Eta", "Events/0.2");
+    TCanvas *c4 = drawPrint( im_w_hist,"Mass of the W", "Mass (GeV)", "Events/2GeV", savename);    
+    TCanvas *c5 = drawPrint( pt_w_hist,"Pt of the W", "Pt (GeV)", "Events/20GeV", savename);   
+    TCanvas *c6 = drawPrint( eta_w_hist,"Eta of the W", "Eta", "Events/0.2", savename);
 
-    TCanvas *c7 = drawPrint( pt_higgs_hist, "Pt of Higgs", "Pt (GeV)", "Events/20GeV");
-    TCanvas *c8 = drawPrint( eta_higgs_hist, "Eta of the Higgs", "Eta", "Events/0.2");    
-    TCanvas *c9 = drawPrint( im_higgs_hist, "Mass of the Higgs", "Mass (GeV)", "Events/20GeV");
+    TCanvas *c7 = drawPrint( pt_higgs_hist, "Pt of Higgs", "Pt (GeV)", "Events/20GeV", savename);
+    TCanvas *c8 = drawPrint( eta_higgs_hist, "Eta of the Higgs", "Eta", "Events/0.2", savename);    
+    TCanvas *c9 = drawPrint( im_higgs_hist, "Mass of the Higgs", "Mass (GeV)", "Events/20GeV", savename);
 
-    TCanvas *c10 = drawPrint( pt_tprime_hist, "Pt of TPrime", "Pt (GeV)", "Events/20GeV");
-    TCanvas *c11 = drawPrint( eta_tprime_hist, "Eta of TPrime", "Eta", "Events/0.2");
-    TCanvas *c12 = drawPrint( im_tprime_hist, "Mass of TPrime", "Mass (GeV)", "Events/20GeV");
+    TCanvas *c10 = drawPrint( pt_tprime_hist, "Pt of TPrime", "Pt (GeV)", "Events/20GeV", savename);
+    TCanvas *c11 = drawPrint( eta_tprime_hist, "Eta of TPrime", "Eta", "Events/0.2", savename);
+    TCanvas *c12 = drawPrint( im_tprime_hist, "Mass of TPrime", "Mass (GeV)", "Events/20GeV", savename);
 
-    TCanvas *c13a = drawPrint( dr_tmax_hist, "Delat R of Top Max", "DeltaR", "Events/0.2");
-    TCanvas *c13b = drawPrint( dr_tmin_hist, "Delat R of Top Min", "DeltaR", "Events/0.2");
-    TCanvas *c13c = drawPrint( dr_wb_hist, "Delat R of wb Jet", "DeltaR", "Events/0.2");
-    TCanvas *c13d = drawPrintMulti( histlist, "Delat R of wb Jet, Min&Max Top Jet", "DeltaR", "Events/0.2");
-    TCanvas *c14 = drawPrint( dr_w_hist, "Delta R of W", "DeltaR", "Events/0.2" );
-    TCanvas *c15 = drawPrint( dr_higgs_hist, "Delta R of Higgs", "DeltaR", "Events/0.2" );
+    TCanvas *c13a = drawPrint( dr_tmax_hist, "Delat R of Top Max", "DeltaR", "Events/0.2", savename);
+    TCanvas *c13b = drawPrint( dr_tmin_hist, "Delat R of Top Min", "DeltaR", "Events/0.2", savename);
+    TCanvas *c13c = drawPrint( dr_wb_hist, "Delat R of wb Jet", "DeltaR", "Events/0.2", savename);
+    TCanvas *c13d = drawPrintMulti( histlist, "Delat R of wb Jet, Min&Max Top Jet", "DeltaR", "Events/0.2", savename);
+    TCanvas *c14 = drawPrint( dr_w_hist, "Delta R of W", "DeltaR", "Events/0.2" , savename);
+    TCanvas *c15 = drawPrint( dr_higgs_hist, "Delta R of Higgs", "DeltaR", "Events/0.2" , savename);
     
-    TCanvas *c16 = drawPrint2D(drvpt_top_hist, "DeltaR vs Pt of Top", "Pt (GeV)", "DeltaR");
-    TCanvas *c17 = drawPrint2D(drvpt_higgs_hist, "DeltaR vs Pt of Higgs", "Pt (GeV)", "DeltaR");
-    TCanvas *c18 = drawPrint2D(drvpt_w_hist, "DeltaR vs Pt of W", "Pt (GeV)", "DeltaR");
+    TCanvas *c16 = drawPrint2D(drvpt_top_hist, "DeltaR vs Pt of Top", "Pt (GeV)", "DeltaR", savename);
+    TCanvas *c17 = drawPrint2D(drvpt_higgs_hist, "DeltaR vs Pt of Higgs", "Pt (GeV)", "DeltaR", savename);
+    TCanvas *c18 = drawPrint2D(drvpt_w_hist, "DeltaR vs Pt of W", "Pt (GeV)", "DeltaR", savename);
 
-    TCanvas *c19 = drawPrint( im_qwt_hist, "Mass of qwt", "Mass (GeV)", "Events/0.002GeV");
-    TCanvas *c20 = drawPrint( eta_qwt_hist, "Eta of qwt", "Eta", "Events/0.2");
-    TCanvas *c21 = drawPrint( pt_qwt_hist, "Pt  of qwt", "Pt (GeV)", "Events/10GeV" );
+    TCanvas *c19 = drawPrintLogX( im_qwt_hist, "Mass of qwt", "Mass (GeV)", "Events/LogGeV", savename);
+    TCanvas *c20 = drawPrint( eta_qwt_hist, "Eta of qwt", "Eta", "Events/0.2", savename);
+    TCanvas *c21 = drawPrint( pt_qwt_hist, "Pt  of qwt", "Pt (GeV)", "Events/10GeV" , savename);
 
-    TCanvas *c22 = drawPrint( im_btT_hist, "Mass of btT", "Mass (GeV)", "Events/20GeV");
-    TCanvas *c23 = drawPrint( eta_btT_hist, "Eta of btT", "Eta", "Events/0.2");
-    TCanvas *c24 = drawPrint( pt_btT_hist, "Pt of btT", "Pt (GeV)", "Events/20GeV" );
+    TCanvas *c22 = drawPrint( im_btT_hist, "Mass of btT", "Mass (GeV)", "Events/20GeV", savename);
+    TCanvas *c23 = drawPrint( eta_btT_hist, "Eta of btT", "Eta", "Events/0.2", savename);
+    TCanvas *c24 = drawPrint( pt_btT_hist, "Pt of btT", "Pt (GeV)", "Events/20GeV" , savename);
 
-    TCanvas *c25 = drawPrint( im_bhT_hist, "Mass of bht", "Mass (GeV)", "Events/20GeV");
-    TCanvas *c26 = drawPrint( eta_bhT_hist, "Eta of bht", "Eta", "Events/0.2");
-    TCanvas *c27 = drawPrint( pt_bhT_hist, "Pt of bht", "Pt (GeV)", "Events/0.10GeV" );
+    TCanvas *c25 = drawPrint( im_bhT_hist, "Mass of bht", "Mass (GeV)", "Events/20GeV", savename);
+    TCanvas *c26 = drawPrint( eta_bhT_hist, "Eta of bht", "Eta", "Events/0.2", savename);
+    TCanvas *c27 = drawPrint( pt_bhT_hist, "Pt of bht", "Pt (GeV)", "Events/0.10GeV" , savename);
 
-    TCanvas *c28 = drawPrint( pt_bg_hist, "Pt of b from Gluon","Pt (GeV)", "Events/20GeV" );
-    TCanvas *c29 = drawPrint( eta_bg_hist, "Eta of b from Gluon","Eta", "Events/0.2" );
-    TCanvas *c30 = drawPrint( im_bg_hist, "Mass of b from Gluon","Mass (GeV)", "Events/0.1GeV" );
+    TCanvas *c28 = drawPrint( pt_bg_hist, "Pt of b from Gluon","Pt (GeV)", "Events/20GeV" , savename);
+    TCanvas *c29 = drawPrint( eta_bg_hist, "Eta of b from Gluon","Eta", "Events/0.2", savename );
+    TCanvas *c30 = drawPrint( im_bg_hist, "Mass of b from Gluon","Mass (GeV)", "Events/0.1GeV", savename );
     
-    TCanvas *c31 = drawPrint( pt_qq_hist, "Pt of q from qW","Pt (GeV)", "Events/20GeV" );
-    TCanvas *c32 = drawPrint( eta_qq_hist, "Eta of q from qW","Eta", "Events/0.2" );
-    TCanvas *c33 = drawPrint( im_qq_hist, "Mass of q from qW","Mass (GeV)", "Events/0.02GeV" );
+    TCanvas *c31 = drawPrint( pt_qq_hist, "Pt of q from qW","Pt (GeV)", "Events/20GeV", savename );
+    TCanvas *c32 = drawPrint( eta_qq_hist, "Eta of q from qW","Eta", "Events/0.2" , savename);
+    TCanvas *c33 = drawPrintLogX( im_qq_hist, "Mass of q from qW","Mass (GeV)", "Events/LogGeV", savename );
 
-    TCanvas *c34 = drawPrintComb( pt_top_hist, dr_tmax_hist, drvpt_top_hist, "DeltaR vs Pt of Top Combo" ); 
-    TCanvas *c35 = drawPrintComb( pt_higgs_hist, dr_higgs_hist, drvpt_higgs_hist, "DeltaR vs Pt of Higgs Combo" );
-    TCanvas *c36 = drawPrintComb( pt_w_hist, dr_w_hist, drvpt_w_hist, "DeltaR vs Pt of W Combo" );
+    TCanvas *c34 = drawPrintComb( pt_top_hist, dr_tmax_hist, drvpt_top_hist, "DeltaR vs Pt of Top Combo", savename ); 
+    TCanvas *c35 = drawPrintComb( pt_higgs_hist, dr_higgs_hist, drvpt_higgs_hist, "DeltaR vs Pt of Higgs Combo", savename );
+    TCanvas *c36 = drawPrintComb( pt_w_hist, dr_w_hist, drvpt_w_hist, "DeltaR vs Pt of W Combo", savename );
    
-    TCanvas *c37 = drawPrint( Ht_hist, "Ht for Event Run","Ht (GeV)","Events/50GeV"); 
+    TCanvas *c37 = drawPrint( Ht_hist, "Ht for Event Run","Ht (GeV)","Events/50GeV", savename);
+    TCanvas *c38 = drawPrint( Heta_hist, "Total Eta for Event Run", "Eta", "Events/0.2", savename); 
+    
+    cout << "Writing log file" << endl;
+    ofstream  out;
+    string fileName = rootfilename + cutname[cutrun] + "_" + "log.txt";
+    char* temp = new char[ fileName.length() + 1 ];
+    strcpy( temp, fileName.c_str() );
+    out.open( temp );
+	
+    out << "Number of qw  found: " << qwcnt << endl;
+    out << "Number of T   found: " << Tcnt << endl;/////
+    out << "Number of tT  found: " << tTcnt << endl;/////
+    out << "Number of bhT found: " << bhTcnt << endl;/////
+    out << "Number of btT found: " << btTcnt << endl;/////
+    out << "Number of hT  found: " << hTcnt << endl;//////
+    out << "Number of wtT found: " << wtTcnt << endl;/////
+    out << "Number of qq  found: " << qqcnt << endl;/////
+    out << "Number of bg  found: " << bgcnt << endl;
+    out << "Number of events found: " << evcnt << endl;
+    out << "Number of events after Ht cut found: " << htcut << endl;
+    out << "Number of events after Higgs cut found: " << higgscut << endl;
+    out << "Number of events after top cut found: " << topcut << endl;
+    out.close();
 
-    cout << "Number of qw  found: " << qwcnt << endl;
-    cout << "Number of T   found: " << Tcnt << endl;/////
-    cout << "Number of tT  found: " << tTcnt << endl;/////
-    cout << "Number of bhT found: " << bhTcnt << endl;/////
-    cout << "Number of btT found: " << btTcnt << endl;/////
-    cout << "Number of hT  found: " << hTcnt << endl;//////
-    cout << "Number of wtT found: " << wtTcnt << endl;/////
-    cout << "Number of qq  found: " << qqcnt << endl;/////
-    cout << "Number of bg  found: " << bgcnt << endl;
-    cout << "Number of events found: " << evcnt << endl;
-    cout << "Number of events after Ht cut found: " << htcut << endl;
-    cout << "Number of events after Higgs cut found: " << higgscut << endl;
-    cout << "Number of events after top cut found: " << topcut << endl;
-    return;
+    cout << "End of cut" << endl;
+
+ }// cut loop
+
+ cout << "End of file : " << rootfilename << endl;
+ return;
 
 }//print histogram aboves
+
+
+void runana( ){
+
+   vector <string> rootfilelist;
+   rootfilelist.push_back("WbT_M1_pythia_lhe_events.root");
+
+   for( int filenum = 0; filenum < rootfilelist.size(); filenum++ ){
+	cout << "Making Analysis Class" << endl;
+	tprimeAnalisis tana;
+	tana.rootfilename = rootfilelist[filenum];
+	cout << "Running Analysis" << endl;
+	tana.Loop();	
+   }
+
+   cout << "Thats all Folks!" << endl;
+   return;
+}
+
 
 //   In a ROOT session, you can do:
 //      root> .L tprimeAnalisis.C

@@ -20,13 +20,13 @@
 #include "TLorentzVector.h"
 #include <vector>
 
-const string rootfile("WbT_M1_pythia_lhe_events.root");
+string rootname("WbT_M800G_hadronic_pythia_lhe_events");
 
 class tprimeAnalisis {
 public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
-
+   string	   rootfilename;
 // Fixed size dimensions of array or collections stored in the TTree if any.
    static const Int_t kMaxEvent = 1;
    static const Int_t kMaxRwgt = 1;
@@ -110,7 +110,7 @@ public :
    TBranch        *b_Particle_Spin;   //!
    TBranch        *b_Particle_size;   //!
 
-   tprimeAnalisis(TTree *tree=0);
+   tprimeAnalisis( TTree *tree = 0 );
    virtual ~tprimeAnalisis();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -128,20 +128,22 @@ public :
 #endif
 
 #ifdef tprimeAnalisis_cxx
-tprimeAnalisis::tprimeAnalisis(TTree *tree) : fChain(0) 
+tprimeAnalisis::tprimeAnalisis( TTree *tree ) : fChain(0) 
 {
 // WbT_M2.5_hadronic_pythia_events.lhe
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
+   string myrootfile = rootname + ".root";
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject( rootfile.c_str() );
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject( myrootfile.c_str() );
       if (!f || !f->IsOpen()) {
-         f = new TFile(rootfile.c_str());
+         f = new TFile( myrootfile.c_str());
       }
       f->GetObject("LHEF",tree);
 
    }
    Init(tree);
+   rootfilename = rootname;
 }
 
 tprimeAnalisis::~tprimeAnalisis()
