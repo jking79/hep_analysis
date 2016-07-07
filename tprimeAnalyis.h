@@ -20,7 +20,7 @@
 #include "TLorentzVector.h"
 #include <vector>
 
-string rootname("WbT_M800G_hadronic_pythia_lhe_events");
+string rootname("WbT_tH_M1.2_hadronic_pythia_lhe_events");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
 
 class tprimeAnalisis {
 public :

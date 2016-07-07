@@ -148,7 +148,21 @@ TCanvas* drawPrintComb( TH1D* hist1, TH1D* hist2, TH2D* hist3, string title, str
         return drawPrintComb( hist1, hist2, hist3, ".png", title, rfname );
 }
 
-bool passcut( int cutrun, TLorentzVector &hTvec, TLorentzVector &tTvec, double &Ht, int &htcut, int &higgscut, int &topcut ){
+bool ckhiggscut( TLorentzVector &hTvec, double dr_h )
+{
+	bool result = false;
+	if( (hTvec.Pt() > 300 ) && ( abs( hTvec.Eta() ) < 2.4 ) && ( dr_h < 0.8  )) result = true;
+	return result;
+}
+
+bool cktopcut( TLorentzVector &tTvec, double dr_wb )
+{
+	bool result = false;
+	if( (tTvec.Pt() > 400 ) && ( abs( tTvec.Eta() ) < 2.4 ) && ( dr_wb < 0.8 ) ) result = true;
+	return result;
+}
+
+bool passcut( int cutrun, TLorentzVector &hTvec, double dr_h, TLorentzVector &tTvec, double dr_wb, double Ht, int &htcut, int &higgscut, int &topcut ){
 
 /*      if( Ht > 1100 ){ htcut++;
         if( (hTvec.Pt() > 300 ) && ( abs( hTvec.Eta() ) < 2.4 ) ){ higgscut++;
@@ -158,8 +172,8 @@ bool passcut( int cutrun, TLorentzVector &hTvec, TLorentzVector &tTvec, double &
 
 	if( cutrun == 0 ){ result = true; }
 	else if( ( cutrun == 1 ) && ( Ht > 1100 ) ) { htcut++; result = true; }
-	else if( ( cutrun == 2 ) && (hTvec.Pt() > 300 ) && ( abs( hTvec.Eta() ) < 2.4 ) ){ higgscut++; result = true; }
-        else if( ( cutrun == 3 ) && (tTvec.Pt() > 400 ) && ( abs( tTvec.Eta() ) < 2.4 ) ){ topcut++; result = true; }
+	else if( ( cutrun == 2 ) && ( Ht > 1100 ) && ckhiggscut( hTvec, dr_h ) ){ higgscut++; result = true; }
+        else if( ( cutrun == 3 ) && ( Ht > 1100 ) && ckhiggscut( hTvec, dr_h ) && cktopcut( tTvec, dr_wb) ){ topcut++; result = true; }
 	
 	return result;
 }
@@ -343,14 +357,17 @@ void tprimeAnalisis::Loop()
         }// find particles in above loop
 
 // calc varibles
-//	cout << "Calcating values for event" << endl;
+	cout << "Calcating values for event" << endl;
 	evcnt++;
 	// delta_R_top
-	double dr1 = (qwjet[0]).DeltaR( qwjet[1] );
+	double dr1 = 0;
+	if( qwjet.size() == 2 ){ dr1 = (qwjet[0]).DeltaR( qwjet[1] ); } else { cout << "qwjet bad" << endl;}
+        cout << "stop2" << endl;
 	double dr2 = (qwjet[1]).DeltaR( btTvec );
 	double dr3 = (qwjet[0]).DeltaR( btTvec );
 	double dr_tmax = 0;
         double dr_tmin = 0;
+        cout << "stop1"<<endl;
         double dr_wb = wtTvec.DeltaR( btTvec );
 	if( dr1 > dr2 ){ if( dr1 > dr3 ){ dr_tmax = dr1;} else { dr_tmax = dr3;}} else { if( dr2 > dr3 ){ dr_tmax = dr2;} else{ dr_tmax = dr3; }}	
 	if( dr1 < dr2 ){ if( dr1 < dr3 ){ dr_tmin = dr1;} else { dr_tmin = dr3;}} else { if( dr2 < dr3 ){ dr_tmin = dr2;} else{ dr_tmin = dr3; }} 
@@ -364,9 +381,9 @@ void tprimeAnalisis::Loop()
 	bhTjet.clear();
 //	Fill cutts<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
-//	cout << "Checking Cut for cut level :" << cutrun << endl;
-	if( passcut( cutrun, hTvec, tTvec, Ht, htcut, higgscut, topcut ) ) {
-//	cout << "Filling histograms" << endl;
+	cout << "Checking Cut for cut level :" << cutrun << endl;
+	if( passcut( cutrun, hTvec, dr_h,  tTvec, dr_wb, Ht, htcut, higgscut, topcut ) ) {
+	cout << "Filling histograms" << endl;
 //      fills
         pt_bg_hist->Fill( bgvec.Pt() );
         eta_bg_hist->Fill( bgvec.Eta() );
