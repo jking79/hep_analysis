@@ -1,4 +1,4 @@
-//////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
 // This class has been automatically generated on
 // Mon Jun 13 14:33:54 2016 by ROOT version 6.06/04
 // from TTree LHEF/Analysis tree
@@ -20,13 +20,14 @@
 #include "TLorentzVector.h"
 #include <vector>
 
-//string rootname("Wbt_tH_M800_hadronic_pythia_lhe_events");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
-//string rootname("Wbt_tH_M1_hadronic_pythia_lhe_events");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
-//string rootname("Wbt_tH_M1.2_hadronic_pythia_lhe_events");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
-//string rootname("Wbt_tH_M1.5_hadronic_pythia_lhe_events");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
-//string rootname("Wbt_tH_M1.8_hadronic_pythia_lhe_events");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
-//string rootname("Wbt_tH_M2_hadronic_pythia_lhe_events");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
-string rootname("Wbt_tH_M2.5_hadronic_pythia_lhe_events");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
+const string myrootname0("Wbt_tH_M800_hadronic");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
+const string myrootname1("Wbt_tH_M1_hadronic");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
+const string myrootname2("Wbt_tH_M1.2_hadronic");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
+const string myrootname3("Wbt_tH_M1.5_hadronic");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
+const string myrootname4("Wbt_tH_M1.8_hadronic");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
+const string myrootname5("Wbt_tH_M2_hadronic");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
+const string myrootname6("Wbt_tH_M2.5_hadronic");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
+const string namebody("_pythia_lhe_events");
 
 class tprimeAnalisis {
 public :
@@ -117,6 +118,7 @@ public :
    TBranch        *b_Particle_size;   //!
 
    tprimeAnalisis( TTree *tree = 0 );
+   tprimeAnalisis( string rootname  );
    virtual ~tprimeAnalisis();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -139,7 +141,27 @@ tprimeAnalisis::tprimeAnalisis( TTree *tree ) : fChain(0)
 // WbT_M2.5_hadronic_pythia_events.lhe
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
-   string myrootfile = rootname + ".root";
+   string myrootfile = myrootname0 + ".root";
+   if (tree == 0) {
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject( myrootfile.c_str() );
+      if (!f || !f->IsOpen()) {
+         f = new TFile( myrootfile.c_str());
+      }
+      f->GetObject("LHEF",tree);
+
+   }
+   Init(tree);
+   rootfilename = myrootname0;
+}
+
+tprimeAnalisis::tprimeAnalisis( string rootname ) : fChain(0)
+{
+// WbT_M2.5aaaa_hadronic_pythia_events.lhe
+// if parameter tree is not specified (or zero), connect the file
+// used to generate this class and read the Tree.
+   TTree *tree = 0;
+
+   string myrootfile = rootname + "/" + rootname + namebody + ".root";
    if (tree == 0) {
       TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject( myrootfile.c_str() );
       if (!f || !f->IsOpen()) {
@@ -151,6 +173,7 @@ tprimeAnalisis::tprimeAnalisis( TTree *tree ) : fChain(0)
    Init(tree);
    rootfilename = rootname;
 }
+
 
 tprimeAnalisis::~tprimeAnalisis()
 {

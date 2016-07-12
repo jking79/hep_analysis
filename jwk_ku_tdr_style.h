@@ -23,6 +23,29 @@
 int can_x_width = 800;
 int can_y_width = 600;
 
+
+string rpsb(string temp)
+{
+   int position = temp.find( " " ); // find first space
+   while ( position != string::npos )
+   {
+      temp.replace( position, 1, "_" );
+      position = temp.find( " ", position + 1 );
+   }
+   return temp;
+}
+
+string revrpsb(string temp)
+{
+   int position = temp.find( "_" ); // find first space
+   while ( position != string::npos )
+   {
+      temp.replace( position, 1, " " );
+      position = temp.find( "_", position + 1 );
+   }
+   return temp;
+}
+
 // draws a histogram when TH1F, canvas, and x,y titles provided.
 void tdrHistDraw( TH1D* &hist, TCanvas* &can, string xtit, string ytit )
 {
@@ -70,9 +93,14 @@ void tdrHist2DDraw( TH2D* &hist, TCanvas* &can, string xtit, string ytit )
 }
 
 // draws a histogram when TH1F, canvas, and x,y titles provided.
-void tdrHistDrawMulti( vector<TH1D*> &hist, TCanvas* &can, string xtit, string ytit )
+void tdrHistDrawMulti( vector<TH1D*> &hist, TCanvas* &can, string xtit, string ytit, double miny, double maxy, vector<string> label )
 {
     can->cd();
+    TLegend* myleg = new TLegend( 0.4, 0.6, 0.89, 0.89 );
+    myleg->SetFillColor(0);
+    myleg->SetBorderSize(0);
+    myleg->SetTextSize(0.045);
+    myleg->SetHeader( (label[0]).c_str() );
     for( int i = 0 ; i < hist.size(); i++)
     {
       hist[i]->UseCurrentStyle();
@@ -80,19 +108,35 @@ void tdrHistDrawMulti( vector<TH1D*> &hist, TCanvas* &can, string xtit, string y
       hist[i]->GetXaxis()->SetTitle(xtit.c_str());
       hist[i]->GetYaxis()->CenterTitle(true);
       hist[i]->GetYaxis()->SetTitle(ytit.c_str());
-      hist[i]->GetYaxis()->SetRangeUser( 0, 2500 );
+      hist[i]->GetYaxis()->SetRangeUser( miny, maxy );
       if( i == 0 ){
 	 hist[i]->SetLineColor(i+2);
          hist[i]->Draw();
+	 myleg->AddEntry( hist[i], (label[i+1]).c_str(), "L" );
 	 gPad->Update();
       }else{
 	 hist[i]->SetLineColor(i+2);
          hist[i]->Draw("same");
+         myleg->AddEntry( hist[i], (label[i+1]).c_str(), "L" );
 	 gPad->Update();
       }
     }
+    myleg->Draw(); 
     gPad->Update();
     return;
+
+}
+
+void tdrHistDrawMulti( vector<TH1D*> &hists, TCanvas* &can, string xtit, string ytit )
+{
+	vector<string> bob;
+	bob.push_back( "Legend" );
+	bob.push_back( "DeltaR of Tmax" );
+        bob.push_back( "DeltaR of Tmin" );        
+	bob.push_back( "DeltaR of Wb" );
+
+	tdrHistDrawMulti( hists, can, xtit, ytit, 0, 2500, bob );
+	return;
 
 }
 
@@ -253,3 +297,63 @@ void setTDRStyle() {
   tdrStyle->cd();
 
 }
+
+
+TCanvas* drawPrint( TH1D* hist, string type, string title, string xtitle, string ytitle, string rfname)
+{
+        TCanvas *c = getTDRCanvas( title + rfname );
+        tdrHistDraw( hist, c, xtitle, ytitle );
+        string savetitle( rfname + "_" + rpsb(title) + type );
+        c->SaveAs( savetitle.c_str() );
+        return c;
+}
+
+TCanvas* drawPrint( TH1D* hist, string title, string xtitle, string ytitle, string rfname)
+{
+        return drawPrint( hist, ".png", title, xtitle, ytitle, rfname );
+}
+
+TCanvas* drawPrintLogX( TH1D* hist, string type, string title, string xtitle, string ytitle, string rfname)
+{
+        TCanvas *c = getTDRCanvas( title + rfname );
+        tdrHistDrawLogX( hist, c, xtitle, ytitle );
+        string savetitle( rfname + "_" + rpsb(title) + type );
+        c->SaveAs( savetitle.c_str() );
+        return c;
+}
+
+TCanvas* drawPrintLogX( TH1D* hist, string title, string xtitle, string ytitle, string rfname )
+{
+        return drawPrintLogX( hist, ".png", title, xtitle, ytitle, rfname );
+}
+
+TCanvas* drawPrintMulti( vector<TH1D*> histlist, string type, string title, string xtitle, string ytitle, string rfname, double ymin, double ymax, vector<string> label )
+{
+        TCanvas *c = getTDRCanvas( title + rfname );
+        tdrHistDrawMulti( histlist, c, xtitle, ytitle, ymin, ymax, label );
+        string savetitle( rfname + "_" + rpsb(title) + type );
+        c->SaveAs( savetitle.c_str() );
+        return c;
+}
+
+TCanvas* drawPrintMulti( vector<TH1D*> histlist, string title, string xtitle, string ytitle, string rfname, double ymin, double ymax, vector<string> label )
+{
+        return drawPrintMulti( histlist, ".png", title, xtitle, ytitle, rfname, ymin, ymax, label );
+}
+
+
+TCanvas* drawPrint2D( TH2D* hist, string type, string title, string xtitle, string ytitle, string rfname )
+{
+        TCanvas *c = getTDRCanvas( title + rfname );
+        tdrHist2DDraw( hist, c, xtitle, ytitle );
+        string savetitle( rfname + "_" + rpsb(title) + type );
+        c->SaveAs( savetitle.c_str() );
+        return c;
+}
+
+TCanvas* drawPrint2D( TH2D* hist, string title, string xtitle, string ytitle, string rfname)
+{
+        return drawPrint2D( hist, ".png", title, xtitle, ytitle , rfname );
+}
+
+

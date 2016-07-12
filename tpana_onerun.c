@@ -1,10 +1,13 @@
 #define tprimeAnalisis_cxx
-#include "tprimeAnalyis.h"
+#include "tpana_onerun.h"
 #include <TCanvas.h>
 #include "jwk_ku_tdr_style.h"
 #include "CombineHistograms.h"
 
-
+static const bool dodr = false;
+static const int ht_cut = 1000;
+static const int top_cut = 400;
+static const int hig_cut = 300;
 
 bool tprimeAnalisis::get2Vector( int numpart, int particle, int mother, int granny, TLorentzVector &vectorReturn, int &charg )
 {
@@ -82,7 +85,14 @@ TCanvas* drawPrintComb( TH1D* hist1, TH1D* hist2, TH2D* hist3, string title, str
         return drawPrintComb( hist1, hist2, hist3, ".png", title, rfname );
 }
 
-static const int ht_cut = 1100;
+bool drcheck( double dr )
+{
+	bool result = false;
+	if( dodr ){
+		if( dr < 0.8 ) result = true;
+	} else { result = true; }
+	return result;
+}
 
 double pt30_eta5_HtBounds( TLorentzVector &vec ) 
 {
@@ -94,14 +104,14 @@ double pt30_eta5_HtBounds( TLorentzVector &vec )
 bool ckhiggscut( TLorentzVector &hTvec, double dr_h )
 {
 	bool result = false;
-	if( (hTvec.Pt() > 300 ) && ( abs( hTvec.Eta() ) < 2.4 ) && ( dr_h < 0.8 )  ) result = true;
+	if( (hTvec.Pt() > hig_cut ) && ( abs( hTvec.Eta() ) < 2.4 ) && drcheck(dr_h)  ) result = true;
 	return result;
 }
 
 bool cktopcut( TLorentzVector &tTvec, double dr_wb ) //&& ( dr_wb < 0.8 )
 {
 	bool result = false;
-	if( (tTvec.Pt() > 400 ) && ( abs( tTvec.Eta() ) < 2.4 ) && ( dr_wb < 0.8 )  ) result = true;
+	if( (tTvec.Pt() > top_cut ) && ( abs( tTvec.Eta() ) < 2.4 ) && drcheck( dr_wb )  ) result = true;
 	return result;
 }
 
@@ -398,7 +408,8 @@ void tprimeAnalisis::Loop()
     bob.push_back( "DeltaR of Wb" );
 
     setTDRStyle();
-    string savename = rootfilename + cutname[cutrun];
+    int stop = rootfilename.length() - namebody.length();
+    string savename = rootfilename.substr(0,stop ) + "/" +  rootfilename + cutname[cutrun];
 
     TCanvas *c1 = drawPrint( pt_top_hist,"Pt of the Top", "Pt (GeV)", "Events/20GeV", savename );   
     TCanvas *c2 = drawPrint( eta_top_hist,"Eta of the Top", "Eta", "Events/0.2", savename);
@@ -456,7 +467,7 @@ void tprimeAnalisis::Loop()
     
     cout << "Writing log file" << endl;
     ofstream  out;
-    string fileName = rootfilename + cutname[cutrun] + "_" + "log.txt";
+    string fileName = rootfilename.substr(0,stop ) + "/" +  rootfilename + cutname[cutrun] + "_" + "log.txt";
     char* temp = new char[ fileName.length() + 1 ];
     strcpy( temp, fileName.c_str() );
     out.open( temp );
@@ -488,16 +499,22 @@ void tprimeAnalisis::Loop()
 
 void runana( ){
 
-   vector <string> rootfilelist;
-   rootfilelist.push_back("WbT_M1_pythia_lhe_events.root");
+	vector<string> rootname;
+	rootname.push_back( myrootname0 );
+	rootname.push_back( myrootname1 );
+	rootname.push_back( myrootname2 );
+	rootname.push_back( myrootname3 );
+	rootname.push_back( myrootname4 );
+	rootname.push_back( myrootname5 );
+	rootname.push_back( myrootname6 );
+	//rootname.push_back( myrootname7 );
 
-   for( int filenum = 0; filenum < rootfilelist.size(); filenum++ ){
-	cout << "Making Analysis Class" << endl;
-	tprimeAnalisis tana;
-	tana.rootfilename = rootfilelist[filenum];
-	cout << "Running Analysis" << endl;
-	tana.Loop();	
-   }
+   	for( int filenum = 0; filenum < rootname.size(); filenum++ ){
+		cout << "Making Analysis Class" << endl;
+		tprimeAnalisis tana( rootname[filenum]);
+		cout << "Running Analysis" << endl;
+		tana.Loop();	
+	   }
 
    cout << "Thats all Folks!" << endl;
    return;
