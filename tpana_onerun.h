@@ -26,7 +26,8 @@ const string myrootname2("Wbt_tH_M1.2_hadronic");//"WbT_M1_pythia_lhe_events");/
 const string myrootname3("Wbt_tH_M1.5_hadronic");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
 const string myrootname4("Wbt_tH_M1.8_hadronic");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
 const string myrootname5("Wbt_tH_M2_hadronic");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
-const string myrootname6("Wbt_tH_M2.5_hadronic");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
+const string myrootname6("Wbt_tH_M2.2_hadronic");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
+const string myrootname7("Wbt_tH_M2.5_hadronic");//"WbT_M1_pythia_lhe_events");//"WbT_M800G_hadronic_pythia_lhe_events");
 const string namebody("_pythia_lhe_events");
 
 class tprimeAnalisis {
@@ -117,6 +118,13 @@ public :
    TBranch        *b_Particle_Spin;   //!
    TBranch        *b_Particle_size;   //!
 
+   bool 	  bkgrd;
+   int		  cutlevel;
+   bool 	  dodr;
+   int 		  ht_cut;
+   int 		  top_cut;
+   int 		  hig_cut;
+
    tprimeAnalisis( TTree *tree = 0 );
    tprimeAnalisis( string rootname  );
    virtual ~tprimeAnalisis();
@@ -130,6 +138,11 @@ public :
    virtual bool	    get2Vector( int x, int particle, int mother, int granny, TLorentzVector &vectorReturn, int &charg );
    virtual bool	    get2VectorFromJet( int x, vector<int> &partlist, int mother, int granny, TLorentzVector &vectorReturn, int &charg, int &part );
    virtual bool     get2VectorFromLists( int numpart, vector<int> particle, vector<int> mother, int granny, TLorentzVector &vectorReturn, int &charg, int &part );
+   virtual bool     passcut( int cutrun, TLorentzVector &hTvec, double dr_h, TLorentzVector &tTvec, double dr_wb, double Ht, int htcut, int higgscut, int topcut  );
+   virtual bool     cktopcut( TLorentzVector &tTvec, double dr_wb );
+   virtual bool     ckhiggscut( TLorentzVector &hTvec, double dr_h );
+   virtual double   pt30_eta5_HtBounds( TLorentzVector &vec );
+   virtual bool     drcheck( double dr );
 
 };
 
@@ -209,6 +222,13 @@ void tprimeAnalisis::Init(TTree *tree)
    // code, but the routine can be extended by the user if needed.
    // Init() will be called many times when running on PROOF
    // (once per file to be processed).
+
+   bkgrd = false;
+   cutlevel = 3;
+   dodr = true;
+   ht_cut = 1100;
+   top_cut = 400;
+   hig_cut = 300;	
 
    // Set branch addresses and branch pointers
    if (!tree) return;

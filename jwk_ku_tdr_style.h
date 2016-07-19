@@ -20,7 +20,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
-int can_x_width = 800;
+int can_x_width = 1000;
 int can_y_width = 600;
 
 
@@ -96,14 +96,15 @@ void tdrHist2DDraw( TH2D* &hist, TCanvas* &can, string xtit, string ytit )
 void tdrHistDrawMulti( vector<TH1D*> &hist, TCanvas* &can, string xtit, string ytit, double miny, double maxy, vector<string> label )
 {
     can->cd();
-    TLegend* myleg = new TLegend( 0.4, 0.6, 0.89, 0.89 );
+    TLegend* myleg = new TLegend( 0.6, 0.6, 0.8, 0.8 );
     myleg->SetFillColor(0);
     myleg->SetBorderSize(0);
-    myleg->SetTextSize(0.045);
+    myleg->SetTextSize(0.025);
     myleg->SetHeader( (label[0]).c_str() );
     for( int i = 0 ; i < hist.size(); i++)
     {
       hist[i]->UseCurrentStyle();
+      hist[i]->SetStats(false);
       hist[i]->GetXaxis()->CenterTitle(true);
       hist[i]->GetXaxis()->SetTitle(xtit.c_str());
       hist[i]->GetYaxis()->CenterTitle(true);
@@ -144,6 +145,12 @@ void tdrHistDrawMulti( vector<TH1D*> &hists, TCanvas* &can, string xtit, string 
 TCanvas* getTDRCanvas( string title )
 {
     TCanvas *can = new TCanvas( title.c_str(), title.c_str(), can_x_width, can_y_width );
+    return can;
+}
+
+TCanvas* getTDRCanvas( string title, string mod )
+{
+    TCanvas *can = new TCanvas( title.c_str(), title.c_str(), can_x_width*2, can_y_width*3 );
     return can;
 }
 
@@ -259,7 +266,7 @@ void setTDRStyle() {
 // For the axis labels:
 
   tdrStyle->SetLabelColor(1, "XYZ");
-  tdrStyle->SetLabelFont(22, "XYZ");
+  tdrStyle->SetLabelFont(20, "XYZ");
   tdrStyle->SetLabelOffset(0.007, "XYZ");
   tdrStyle->SetLabelSize(0.06, "XYZ");
 
@@ -302,7 +309,7 @@ void setTDRStyle() {
 TCanvas* drawPrint( TH1D* hist, string type, string title, string xtitle, string ytitle, string rfname)
 {
         TCanvas *c = getTDRCanvas( title + rfname );
-        tdrHistDraw( hist, c, xtitle, ytitle );
+	tdrHistDraw( hist, c, xtitle, ytitle );
         string savetitle( rfname + "_" + rpsb(title) + type );
         c->SaveAs( savetitle.c_str() );
         return c;
@@ -319,6 +326,7 @@ TCanvas* drawPrintLogX( TH1D* hist, string type, string title, string xtitle, st
         tdrHistDrawLogX( hist, c, xtitle, ytitle );
         string savetitle( rfname + "_" + rpsb(title) + type );
         c->SaveAs( savetitle.c_str() );
+
         return c;
 }
 
@@ -329,6 +337,10 @@ TCanvas* drawPrintLogX( TH1D* hist, string title, string xtitle, string ytitle, 
 
 TCanvas* drawPrintMulti( vector<TH1D*> histlist, string type, string title, string xtitle, string ytitle, string rfname, double ymin, double ymax, vector<string> label )
 {
+		
+	double biggest = 0;
+	for( int i = 0; i < histlist.size(); i++ ){ if( biggest < histlist[i]->GetMaximum() ) biggest = histlist[i]->GetMaximum();}
+	ymax = biggest*1.25;
         TCanvas *c = getTDRCanvas( title + rfname );
         tdrHistDrawMulti( histlist, c, xtitle, ytitle, ymin, ymax, label );
         string savetitle( rfname + "_" + rpsb(title) + type );
@@ -341,6 +353,10 @@ TCanvas* drawPrintMulti( vector<TH1D*> histlist, string title, string xtitle, st
         return drawPrintMulti( histlist, ".png", title, xtitle, ytitle, rfname, ymin, ymax, label );
 }
 
+TCanvas* drawPrintMulti( vector<TH1D*> histlist, string title, string xtitle, string ytitle, string rfname, vector<string> label )
+{
+        return drawPrintMulti( histlist, ".png", title, xtitle, ytitle, rfname, 0, 0, label );
+}
 
 TCanvas* drawPrint2D( TH2D* hist, string type, string title, string xtitle, string ytitle, string rfname )
 {
@@ -348,6 +364,7 @@ TCanvas* drawPrint2D( TH2D* hist, string type, string title, string xtitle, stri
         tdrHist2DDraw( hist, c, xtitle, ytitle );
         string savetitle( rfname + "_" + rpsb(title) + type );
         c->SaveAs( savetitle.c_str() );
+
         return c;
 }
 
