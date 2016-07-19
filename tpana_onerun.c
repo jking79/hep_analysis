@@ -89,13 +89,22 @@ TCanvas* drawPrintComb( TH1D* hist1, TH1D* hist2, TH2D* hist3, string title, str
         return drawPrintComb( hist1, hist2, hist3, ".png", title, rfname );
 }
 
-bool  tprimeAnalisis::drcheck( double dr )
+bool  tprimeAnalisis::drcheckhig( double dr )
 {
 	bool result = false;
-	if( dodr ){
+	if( dodrhig ){
 		if( dr < 0.8 ) result = true;
 	} else { result = true; }
 	return result;
+}
+
+bool  tprimeAnalisis::drchecktop( double dr )
+{
+        bool result = false;
+        if( dodrtop ){
+                if( dr < 0.8 ) result = true;
+        } else { result = true; }
+        return result;
 }
 
 double  tprimeAnalisis::pt30_eta5_HtBounds( TLorentzVector &vec ) 
@@ -108,18 +117,18 @@ double  tprimeAnalisis::pt30_eta5_HtBounds( TLorentzVector &vec )
 bool  tprimeAnalisis::ckhiggscut( TLorentzVector &hTvec, double dr_h )
 {
 	bool result = false;
-	if( (hTvec.Pt() > hig_cut ) && ( abs( hTvec.Eta() ) < 2.4 ) && drcheck(dr_h)  ) result = true;
+	if( (hTvec.Pt() > hig_cut ) && ( abs( hTvec.Eta() ) < 2.4 ) && drcheckihig(dr_h)  ) result = true;
 	return result;
 }
 
 bool  tprimeAnalisis::cktopcut( TLorentzVector &tTvec, double dr_wb ) //&& ( dr_wb < 0.8 )
 {
 	bool result = false;
-	if( (tTvec.Pt() > top_cut ) && ( abs( tTvec.Eta() ) < 2.4 ) && drcheck( dr_wb )  ) result = true;
+	if( (tTvec.Pt() > top_cut ) && ( abs( tTvec.Eta() ) < 2.4 ) && drchecktop( dr_wb )  ) result = true;
 	return result;
 }
 
-bool  tprimeAnalisis::passcut( int cutrun, TLorentzVector &hTvec, double dr_h, TLorentzVector &tTvec, double dr_wb, double Ht, int htcut, int higgscut, int topcut ){
+bool  tprimeAnalisis::passcut( int cutrun, TLorentzVector &hTvec, double dr_h, TLorentzVector &tTvec, double dr_wb, double Ht, int &htcut, int &higgscut, int &topcut ){
 
 /*      if( Ht > 1100 ){ htcut++;
         if( (hTvec.Pt() > 300 ) && ( abs( hTvec.Eta() ) < 2.4 ) ){ higgscut++;
@@ -139,6 +148,18 @@ bool  tprimeAnalisis::passcut( int cutrun, TLorentzVector &hTvec, double dr_h, T
 void tprimeAnalisis::Loop()
 {
    if (fChain == 0) return;
+
+  
+  string higdr("False");
+  string topdr("False");
+  if( dodrhig ) higdr = "True";
+  if( dodrtop ) topdr = "True";
+  string cuttype = "_ht" + atoi( ht_cut ) + "_hig" + atoi( hig_cut ) + "dr" + higdr + "_top" + atoi( top_cut ) + "dr" + topdr;
+
+    int htcut = 0;
+    int higgscut = 0;
+    int topcut = 0;
+    int xjetcut = 0;
 
   string cutname[5] = { "_none", "_htcut", "_higgscut", "_topcut", "_xjetcut" };
   for( int cutrun = 0; cutrun < (cutlevel + 1); cutrun++ ){       ///  loop through cuts  <<<<<<<<<<<<<<<<<<<<<<<<<<    cutrun loop
@@ -192,11 +213,6 @@ void tprimeAnalisis::Loop()
 
     double Ht = 0;
     int part = 0;
-
-    int htcut = 0;
-    int higgscut = 0;
-    int topcut = 0;
-    int xjetcut = 0;
 
     vector<TLorentzVector> qwjet;  //  q from w
     vector<TLorentzVector> bhTjet; //  b from h
@@ -536,7 +552,7 @@ void tprimeAnalisis::Loop()
         jim.push_back( "Quark from W" );
 
     setTDRStyle();
-    string savename = rootfilename + "/" +  rootfilename + cutname[cutrun];
+    string savename = rootfilename + "/" +  rootfilename + cuttype + cutname[cutrun];
     cout << savename << endl;
 
     vector<TCanvas*> canlist;
@@ -699,13 +715,21 @@ void tprimeAnalisis::Loop()
 /*
 static const bool bkgrd = false;
 static const int cutlevel = 3;
-static const bool dodr = true;
+static const bool dodrtop = true;
+		dodrhig = true;
 static const int ht_cut = 1000;
 static const int top_cut = 350;
 static const int hig_cut = 300;
 */
 
 void runana( ){
+
+	int htc[2] = { 1000, 1100 };
+	int higc = 300;
+	bool higdrc[2] = {true, false};
+	int topc[2] = {350, 400};
+	bool topdrc[2] = {true, false};
+
 
 	vector<string> rootname;
 	rootname.push_back( myrootname0 );
@@ -718,11 +742,23 @@ void runana( ){
 	rootname.push_back( myrootname7 );
 
 //   loop on cut types - add internal ref and cut varibles
+	for( int htloop = 0; htloop < 2; htloop++){
+		for( int higdrloop = 0; higdrloop < 2; higdrloop++ ){
+			for( int toploop = 0; toploop < 2; toploop++ ){
+				for( int topdrloop = 0; topdrloop < 2; topdrloop++ ){
 
 
    	for( int filenum = 0; filenum < rootname.size(); filenum++ ){
 		cout << "Making Analysis Class " << rootname[filenum] << endl;
 		tprimeAnalisis *tana = new tprimeAnalisis( rootname[filenum] );
+		cout << "Seting Cuts" << endl;
+		tana->bkgrd = false;
+                tana->cutlevel = 3;
+                tana->dodrhig = higdrc[higdrloop];
+                tana->dodrtop = topdrc[topdrloop];
+                tana->ht_cut = htc[htloop];
+                tana->top_cut = topc[toploop];
+                tana->hig_cut = higc;
 		cout << "Running Analysis" << endl;
 		tana->Loop();
 		delete tana;	

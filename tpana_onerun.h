@@ -120,7 +120,8 @@ public :
 
    bool 	  bkgrd;
    int		  cutlevel;
-   bool 	  dodr;
+   bool 	  dodrhig;
+   bool		  dodrtop;
    int 		  ht_cut;
    int 		  top_cut;
    int 		  hig_cut;
@@ -142,7 +143,8 @@ public :
    virtual bool     cktopcut( TLorentzVector &tTvec, double dr_wb );
    virtual bool     ckhiggscut( TLorentzVector &hTvec, double dr_h );
    virtual double   pt30_eta5_HtBounds( TLorentzVector &vec );
-   virtual bool     drcheck( double dr );
+   virtual bool     drcheckhig( double dr );
+   virtual bool     drchecktop( double dr );
 
 };
 
@@ -225,7 +227,8 @@ void tprimeAnalisis::Init(TTree *tree)
 
    bkgrd = false;
    cutlevel = 3;
-   dodr = true;
+   dodrhig = true;
+   dodrtop = true;
    ht_cut = 1100;
    top_cut = 400;
    hig_cut = 300;	
