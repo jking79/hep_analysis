@@ -117,7 +117,7 @@ double  tprimeAnalisis::pt30_eta5_HtBounds( TLorentzVector &vec )
 bool  tprimeAnalisis::ckhiggscut( TLorentzVector &hTvec, double dr_h )
 {
 	bool result = false;
-	if( (hTvec.Pt() > hig_cut ) && ( abs( hTvec.Eta() ) < 2.4 ) && drcheckihig(dr_h)  ) result = true;
+	if( (hTvec.Pt() > hig_cut ) && ( abs( hTvec.Eta() ) < 2.4 ) && drcheckhig(dr_h)  ) result = true;
 	return result;
 }
 
@@ -130,10 +130,6 @@ bool  tprimeAnalisis::cktopcut( TLorentzVector &tTvec, double dr_wb ) //&& ( dr_
 
 bool  tprimeAnalisis::passcut( int cutrun, TLorentzVector &hTvec, double dr_h, TLorentzVector &tTvec, double dr_wb, double Ht, int &htcut, int &higgscut, int &topcut ){
 
-/*      if( Ht > 1100 ){ htcut++;
-        if( (hTvec.Pt() > 300 ) && ( abs( hTvec.Eta() ) < 2.4 ) ){ higgscut++;
-        if( (tTvec.Pt() > 400 ) && ( abs( tTvec.Eta() ) < 2.4 ) ){ topcut++;
-*/
 	bool result = false;
 
 	if( cutrun == 0 ){ result = true; }
@@ -150,81 +146,35 @@ void tprimeAnalisis::Loop()
    if (fChain == 0) return;
 
   
-  string higdr("False");
-  string topdr("False");
-  if( dodrhig ) higdr = "True";
-  if( dodrtop ) topdr = "True";
-  string cuttype = "_ht" + atoi( ht_cut ) + "_hig" + atoi( hig_cut ) + "dr" + higdr + "_top" + atoi( top_cut ) + "dr" + topdr;
-
-    int htcut = 0;
-    int higgscut = 0;
-    int topcut = 0;
-    int xjetcut = 0;
-
-  string cutname[5] = { "_none", "_htcut", "_higgscut", "_topcut", "_xjetcut" };
-  for( int cutrun = 0; cutrun < (cutlevel + 1); cutrun++ ){       ///  loop through cuts  <<<<<<<<<<<<<<<<<<<<<<<<<<    cutrun loop
-
-    Long64_t nentries = fChain->GetEntriesFast();
-
-
 /////////////////////////////////////////
 
-    int dnc = -1;
-    int none = 0;
-    int down = 1;
-    int up = 2;
-    int strange = 3;
-    int charm = 4;
-    int bottom = 5;
-    int top = 6;
-    int bprime = 7;
-    int tprime = 8000001;
+    dnc = -1;
+    none = 0;
+    down = 1;
+    up = 2;
+    strange = 3;
+    charm = 4;
+    bottom = 5;
+    top = 6;
+    bprime = 7;
+    tprime = 8000001;
 
-    int electron = 11;
-    int enutrino = 12; 
-    int muon = 13;
-    int mnutrino = 14;
-    int tau = 15;
-    int tnutrino = 16;
+    electron = 11;
+    enutrino = 12;
+    muon = 13;
+    mnutrino = 14;
+    tau = 15;
+    tnutrino = 16;
 
-    int gluon = 21;
-    int photon = 22;
-    int zee = 23;
-    int w = 24;
-    int higgs = 25;
-    int hplus = 37;
+    gluon = 21;
+    photon = 22;
+    zee = 23;
+    w = 24;
+    higgs = 25;
+    hplus = 37;
 
-//////////////////////////////////////
+       bglist.push_back(bottom);
 
-    int qwcnt = 0;  //  quark from W bosun
-    int Tcnt = 0; //  Tprime
-    int tTcnt = 0; // top from a Tprime
-    int tcnt = 0;  //  top ( Parantage not checked )
-    int bhTcnt = 0; // bottom from higgs
-    int btTcnt = 0; //  bottom from top
-    int bcnt = 0; // bottom ( paratage not checked ) 
-    int hTcnt = 0;  //  higgs from Tprime
-    int wtTcnt = 0; // W from a top
-    int qqcnt = 0; // quark from a quark
-    int bgcnt = 0; // bottom from a gluon
-    int evcnt = 0; //  event count
-    int ltjetcnt = 0; //  ljet with W parent
-    int otherjetcnt = 0; // ljet ( paratage not checked )
-
-    double Ht = 0;
-    int part = 0;
-
-    vector<TLorentzVector> qwjet;  //  q from w
-    vector<TLorentzVector> bhTjet; //  b from h
-    vector<TLorentzVector> qqgjet;  //  q from q 
-    vector<TLorentzVector> tjet; 
-    vector<TLorentzVector> bjet;
-    vector<TLorentzVector> otherjet;     
- 
-    vector<int> bglist;
-    bglist.push_back(bottom);
-
-    vector<int> qjet;
     qjet.push_back(down);
     qjet.push_back(up);
     qjet.push_back(strange);
@@ -232,7 +182,6 @@ void tprimeAnalisis::Loop()
 //    qjet.push_back(top);
 //    qjet.push_back(bottom);
 
-    vector<int> qglist;
     qglist.push_back(down);
     qglist.push_back(up);
     qglist.push_back(strange);
@@ -241,24 +190,83 @@ void tprimeAnalisis::Loop()
 //    qglist.push_back(top);
 //    qglist.push_back(bottom);
 
-    vector<int> ljet;
     ljet.push_back(down);
     ljet.push_back(up);
     ljet.push_back(strange);
     ljet.push_back(charm);
     ljet.push_back(electron);
+    ljet.push_back(muon);
     ljet.push_back(bottom);
-  
-    int ljetpartcnt[17] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};    
-    int otherpartcnt[17] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    int allcnt[25] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
+///////////////////////////////////////////////
+
+  higdr = "False";
+  topdr = "False";
+  if( dodrhig ) higdr = "True";
+  if( dodrtop ) topdr = "True";
+  cuttype = "_ht" + itostr( ht_cut ) + "_hig" + itostr( hig_cut ) + "dr" + higdr + "_top" + itostr( top_cut ) + "dr" + topdr;
+
+  htcut = 0;
+  higgscut = 0;
+  topcut = 0;
+  xjetcut = 0;
+
+  cutname[0] = "_none";
+  cutname[1] = "_htcut";
+  cutname[2] = "_higgscut";
+  cutname[3] = "_topcut";
+  cutname[4] = "_xjetcut";
+
+  for( int cutrun = 0; cutrun < (cutlevel + 1); cutrun++ ){       ///  loop through cuts  <<<<<<<<<<<<<<<<<<<<<<<<<<    cutrun loop
+
+    nentries = fChain->GetEntriesFast();
+    
+    qwcnt = 0;  //  quark from W bosun
+    Tcnt = 0; //  Tprime
+    tTcnt = 0; // top from a Tprime
+    tcnt = 0;  //  top ( Parantage not checked )
+    bhTcnt = 0; // bottom from higgs
+    btTcnt = 0; //  bottom from top
+    bcnt = 0; // bottom ( paratage not checked ) 
+    hTcnt = 0;  //  higgs from Tprime
+    wtTcnt = 0; // W from a top
+    qqcnt = 0; // quark from a quark
+    bgcnt = 0; // bottom from a gluon
+    evcnt = 0; //  event count
+    ltjetcnt = 0; //  ljet with W parent
+    otherjetcnt = 0; // ljet ( paratage not checked )
+
+    Ht = 0;
+    Ht_pe = 0;
+    htjetsize = 0;
+    part = 0;
+
+    for( int i = 0; i < 17; i++ ) { ljetpartcnt[i] = 0; } // {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};    
+    for( int i = 0; i < 17; i++ ) { otherpartcnt[i] = 0;} //{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    for( int i = 0; i < 25; i++ ) { allcnt[i] = 0;} //{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+
+        charg = 0;
+
+        nbytes = 0; 
+	nb = 0;
+
+       // delta_R_top
+        dr1 = 0;
+        dr2 = 0;
+        dr3 = 0;
+        dr_tmax = 0;
+        dr_tmin = 0;
+        dr_wb = 0;
+        dr_h = 0;
+        dr_w = 0;
+
+	ientry = 0;
+
+        fileName = "";
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     cout << "Init histograms :" << cutname[cutrun] << endl;
-
-    vector<TH1D*> thlist;
-    vector<TH2D*> th2list;
-	
-
 
 //bg        
     TH1D *pt_bg_hist = new TH1D("Pt of b from Gluon", "Pt of b from Gluon", 40, 0, 800);
@@ -270,6 +278,7 @@ void tprimeAnalisis::Loop()
     TH1D *im_qq_hist = new TH1D( "Mass of q from Quark","Mass of q from Quark", 200, 0, 2 );
     TH1D *eta_qq_hist = new TH1D("Eta of q from Quark", "Eta of q from Quark", 50, -5, 5);
     thlist.push_back( pt_qq_hist ); thlist.push_back( im_qq_hist );thlist.push_back( eta_qq_hist );
+
 //tT        
     TH1D *pt_top_hist = new TH1D("Pt Top", "Pt Top",100, 0, 2000);
     TH1D *im_top_hist = new TH1D( "Mass Top","Mass of Top", 200, 0, 200 );
@@ -290,6 +299,7 @@ void tprimeAnalisis::Loop()
     TH1D *pt_tprime_hist = new TH1D( "Pt TPrime","Pt of tPrime", 100, 1000, 3000 );    
     TH1D *eta_tprime_hist = new TH1D( "Eta TPrime","Eta of tPrime", 50, -5, 5 );
     thlist.push_back( pt_tprime_hist ); thlist.push_back( im_tprime_hist );thlist.push_back( eta_tprime_hist );
+
 //qwt   <<<<<<<<<<<<
     TH1D *pt_qwt_hist = new TH1D("Pt qw Jet", "Pt qw Jet", 100, 0, 2000);
     TH1D *im_qwt_hist = new TH1D( "Mass qw Jet","Mass of qw Jet", 200, 0, 2 );
@@ -305,6 +315,7 @@ void tprimeAnalisis::Loop()
     TH1D *im_bhT_hist = new TH1D( "Mass bh Jet","Mass of bh Jet", 100, 0, 100 );
     TH1D *eta_bhT_hist = new TH1D("Eta bh Jet", "Eta bh Jet", 50, -5, 5);
     thlist.push_back( pt_bhT_hist ); thlist.push_back( im_bhT_hist );thlist.push_back( eta_bhT_hist );
+
 //dr
     TH1D *dr_tmin_hist = new TH1D( "Min DeltaR Top", "Min DeltaR of Top", 50, 0, 5 );
     TH1D *dr_tmax_hist = new TH1D( "Max DeltaR Top", "Max DeltaR of Top", 50, 0, 5 );
@@ -328,30 +339,21 @@ void tprimeAnalisis::Loop()
     TH2D *ptvseta_bg_hist = new TH2D( "Bottom from Gluon Jet", "Bottom from Gluon Jet", 80, 0, 1600, 50, -5, 5 );
     TH2D *ptvseta_qwt_hist = new TH2D( "Lt Quark from W Jet", "Lt Quark from W Jet", 80, 0, 1600, 50, -5, 5 );
     TH2D *ptvseta_btT_hist = new TH2D( "Bottom from Top Jet", "Bottom from Top Jet", 80, 0, 1600, 50, -5, 5 );
+    TH2D *ptvseta_all_hist = new TH2D( "All Final Jet", "All Final Jet", 80, 0, 1600, 50, -5, 5 );
     th2list.push_back(ptvseta_qqg_hist); th2list.push_back(ptvseta_bhT_hist); th2list.push_back(ptvseta_bg_hist); 
     th2list.push_back(ptvseta_qwt_hist); th2list.push_back(ptvseta_btT_hist);
 
 
-    Long64_t nbytes = 0, nb = 0;
+    nbytes = 0; nb = 0;
     //loop through events
+    if( ( !bkgrd ) && (  nentries > 10000 ) ) nentries = 10000;
     cout << "Number of events : " << nentries << endl;
     for (Long64_t jentry=0; jentry<nentries;jentry++) {
-        Long64_t ientry = LoadTree(jentry);
+        ientry = LoadTree(jentry);
         if (ientry < 0) break;
         nb = fChain->GetEntry(jentry);   nbytes += nb;
         // if (Cut(ientry) < 0) continue;
 
-        //TLorentzVector Declarations
-        TLorentzVector tTvec;
-        TLorentzVector wtTvec;
-        TLorentzVector hTvec;
-        TLorentzVector Tvec;
-        TLorentzVector btTvec;
-	TLorentzVector bgvec;
-	//TLorentzVector qqvec;
-
-        TLorentzVector vReturn;
-        int charg = 0;
 
         //Loop Through Particles
 //	cout << "Looping Particles: Number of particles in the event : " << *Event_Nparticles << endl;
@@ -359,45 +361,91 @@ void tprimeAnalisis::Loop()
   //          cout << " in loop with particle number :" << partnum << endl;
 	    vReturn.SetPtEtaPhiM(0,0,0,0);
 	    charg = 0;
-            if( get2VectorFromLists( partnum, bglist, qglist, dnc, vReturn, charg, part )){ bgcnt++; bgvec = vReturn;}
-            if( get2VectorFromLists( partnum, qglist, qglist, dnc, vReturn, charg, part )){ qqcnt++; qqgjet.push_back( vReturn ); }
-            if( get2Vector( partnum, top, tprime, dnc, vReturn, charg )){ tTcnt++; tTvec = vReturn;}
-	    if( get2Vector( partnum, top, dnc, dnc, vReturn, charg )){ allcnt[top]++; tjet.push_back( vReturn ); }
-            if( get2Vector( partnum, w, top, dnc, vReturn, charg )) { wtTcnt++; wtTvec = vReturn; }
-            if( get2Vector( partnum, w, dnc, dnc, vReturn, charg )) { allcnt[w]++; }            
-	    if( get2Vector( partnum, higgs, tprime, dnc, vReturn, charg )) { allcnt[higgs]++; hTcnt++; hTvec = vReturn;}
-	    if( get2Vector( partnum, tprime, dnc, dnc, vReturn, charg )) { allcnt[8]++; Tcnt++; Tvec = vReturn;}
-            if( get2Vector( partnum, bottom, top, dnc, vReturn, charg )) { btTcnt++; btTvec = vReturn;}
-            if( get2Vector( partnum, bottom, higgs, dnc, vReturn, charg )){ bhTcnt++; bhTjet.push_back( vReturn ); } 
-	    if( get2VectorFromJet( partnum, ljet, w, dnc, vReturn, charg, part )){ allcnt[bottom]++; qwcnt++; ljetpartcnt[part]++; qwjet.push_back( vReturn );}
-	    if( get2Vector( partnum, bottom, dnc, dnc, vReturn, charg )){ allcnt[bottom]++; bcnt++; bjet.push_back( vReturn );}            
-	    if( get2VectorFromLists( partnum, ljet, qglist, dnc, vReturn, charg, part )){allcnt[part]++; otherpartcnt[part]++; otherjetcnt++; otherjet.push_back( vReturn );}
+            if( get2VectorFromLists( partnum, bglist, qglist, dnc, vReturn, charg, part )){ 
+			bgcnt++; 
+			bgvec = vReturn;}// q -> zq or wq
+            if( get2VectorFromLists( partnum, qglist, qglist, dnc, vReturn, charg, part )){ 
+			qqcnt++; 
+			qqgjet.push_back( vReturn ); } // g -> tt or bb
+            if( get2Vector( partnum, top, tprime, dnc, vReturn, charg )){ 
+			tTcnt++; 
+			tTvec = vReturn;} // T -> th find the t
+	    if( get2Vector( partnum, top, dnc, dnc, vReturn, charg )){ 
+			allcnt[top]++; 
+			tjet.push_back( vReturn ); } // any t  : catch second t in back
+            if( get2Vector( partnum, w, top, dnc, vReturn, charg )) { 
+			wtTcnt++; 
+			wtTvec = vReturn; }//  t -> wb find the w
+            if( get2Vector( partnum, w, dnc, dnc, vReturn, charg )) { 
+			allcnt[w]++; 
+			wjet.push_back( vReturn ); }//any w ; count  : catch second w in back
+	    if( get2Vector( partnum, higgs, tprime, dnc, vReturn, charg )) { 
+			allcnt[higgs]++; 
+			hTcnt++; 
+			hTvec = vReturn;} //T->tH fine the H
+	    if( get2Vector( partnum, tprime, dnc, dnc, vReturn, charg )) { 
+			allcnt[8]++; 
+			Tcnt++; 
+			Tvec = vReturn;} // any T
+            if( get2Vector( partnum, bottom, top, dnc, vReturn, charg )) { 
+			btTcnt++; 
+			btTvec = vReturn;} // t -> wb find the b
+            if( get2Vector( partnum, bottom, higgs, dnc, vReturn, charg )){ 
+			bhTcnt++; 
+			bhTjet.push_back( vReturn ); } //  H -> bb find all b
+	    if( get2VectorFromJet( partnum, ljet, w, dnc, vReturn, charg, part )){ 
+			allcnt[bottom]++; 
+			qwcnt++; 
+			ljetpartcnt[part]++; 
+			qwjet.push_back( vReturn );} //  w -> qq find all q
+	    if( get2Vector( partnum, bottom, dnc, dnc, vReturn, charg )){ 
+			allcnt[bottom]++; 
+			bcnt++; 
+			bjet.push_back( vReturn );}// any b 
+	    if( get2VectorFromLists( partnum, ljet, qglist, dnc, vReturn, charg, part )){
+			otherpartcnt[part]++; 	
+			otherjetcnt++; 
+			otherjet.push_back( vReturn );} // q/g -> qq(ll) find qq(ll)
+            if( get2VectorFromJet( partnum, ljet, dnc, dnc, vReturn, charg, part )){
+			allcnt[part]++; 
+			htjet.push_back( vReturn ); } // any q or l
 
         }// find particles in above loop
 
-// calc variblesi
+// 	calc varibles
 
 	if( bkgrd ){
-		if( ( rand()%10 ) > 4 ) { hTvec = tjet[0]; Tvec = tjet[1]; }
-		else { hTvec = tjet[1]; Tvec = tjet[0]; }
+		if( ( rand()%10 ) > 4 ) {   // choose the first top as the higgs, the first w as a bottom, discard q jet from first w  - wtTvec will be second w in back
+			hTvec = tjet[0]; 
+			tTvec = tjet[1];
+			bhTjet.push_back( wjet[0] );
+			bhTjet.push_back( bjet[0] ); 
+			otherjet.push_back( qwjet[0]); 
+			otherjet.push_back( qwjet[1]);
+			qwjet[0] = qwjet[2];
+			qwjet[1] = qwjet[3]; 
+		}
+		else {   //  choose second top as the higgs, the second w as a bottom, discard q jet from second w  - btTvec will be b form second t  -> wb in back
+			hTvec = tjet[1]; 
+			tTvec = tjet[0]; 
+			bhTjet.push_back( wjet[1] );
+                        bhTjet.push_back( bjet[1] ); 
+			otherjet.push_back( qwjet[2] ); 
+			otherjet.push_back( qwjet[3]); 
+			wtTvec = wjet[0];
+			btTvec = bjet[0]; 
+		}
 	}
 	
 //	cout << "Calcating values for event" << endl;
 	vReturn.SetPtEtaPhiM(0,0,0,0);
 	evcnt++;
 	// delta_R_top
-	double dr1 = 0;
-	double dr2 = 0;
-	double dr3 = 0;
-        double dr_tmax = 0;
-        double dr_tmin = 0;
-	double dr_wb = 0;
-	double dr_h = 0;
-	double dr_w = 0;	
+	dr1 = 0;dr2 = 0; dr3 = 0; dr_tmax = 0; dr_tmin = 0; dr_wb = 0; dr_h = 0; dr_w = 0;	
 
-	if( qwjet.size() < 1 ){ qwjet.push_back( vReturn); qwjet.push_back( vReturn);cout << "qwjet empty" << endl; }
-	if( qqgjet.size() < 1 ){ qqgjet.push_back( vReturn); qqgjet.push_back( vReturn);cout << "qqgjet empty" << endl; }
-	if( bhTjet.size() < 1 ){ bhTjet.push_back( vReturn); bhTjet.push_back( vReturn);cout << "bhTjet empty" << endl; }
+	if( qwjet.size() < 1 ){ qwjet.push_back( vReturn); qwjet.push_back( vReturn);}//cout << "qwjet empty" << endl; }
+	if( qqgjet.size() < 1 ){ qqgjet.push_back( vReturn); qqgjet.push_back( vReturn);}//cout << "qqgjet empty" << endl; }
+	if( bhTjet.size() < 1 ){ bhTjet.push_back( vReturn); bhTjet.push_back( vReturn);}//cout << "bhTjet empty" << endl; }
 
 	dr1 = (qwjet[0]).DeltaR( qwjet[1] );
 	dr2 = (qwjet[1]).DeltaR( btTvec );
@@ -409,9 +457,11 @@ void tprimeAnalisis::Loop()
 	if( dr1 < dr2 ){ if( dr1 < dr3 ){ dr_tmin = dr1;} else { dr_tmin = dr3;}} else { if( dr2 < dr3 ){ dr_tmin = dr2;} else{ dr_tmin = dr3; }} 
 	dr_h = (bhTjet[0]).DeltaR( bhTjet[1] );
    	dr_w = dr1;
-//pt>30 and eta < 5 for inclusion to Ht
-	Ht = pt30_eta5_HtBounds( bgvec ) + pt30_eta5_HtBounds( qqgjet[0] ) + pt30_eta5_HtBounds( btTvec );
-	Ht = Ht  + pt30_eta5_HtBounds(bhTjet[0]) + pt30_eta5_HtBounds(bhTjet[1])+ pt30_eta5_HtBounds(qwjet[0]) + pt30_eta5_HtBounds(qwjet[1]);
+//	pt>30 and eta < 5 for inclusion to Ht
+	Ht = 0;
+	Ht_pe = 0;
+	htjetsize += htjet.size();
+	for( int i = 0; i < htjet.size(); i++ ) { Ht += htjet[i].Pt(); Ht_pe += pt30_eta5_HtBounds( htjet[i] ); }
 //	Heta = bgvec.Eta() + (qqgjet[0]).Eta() + btTvec.Eta() + (bhTjet[0]).Eta() + (bhTjet[1]).Eta()+ (qwjet[0]).Eta() + (qwjet[1]).Eta();
 
 //	Fill cutts<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -422,10 +472,11 @@ void tprimeAnalisis::Loop()
 //	cout << "Filling histograms" << endl;  //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 //      fills
+
 	if( bgvec.Pt() > 0 ){
         pt_bg_hist->Fill( bgvec.Pt() );
         eta_bg_hist->Fill( bgvec.Eta() );
-        im_bg_hist->Fill( bgvec.M() );
+//        im_bg_hist->Fill( bgvec.M() );
 	Heta_hist->Fill( bgvec.Eta() );
 	Hpt_hist->Fill( bgvec.Pt() );
 	}
@@ -433,7 +484,7 @@ void tprimeAnalisis::Loop()
 	for( int i = 0; i < qqgjet.size(); i++ ){
         pt_qq_hist->Fill( (qqgjet[i]).Pt() );
         eta_qq_hist->Fill( (qqgjet[i]).Eta() );
-        im_qq_hist->Fill( (qqgjet[i]).M() );
+//        im_qq_hist->Fill( (qqgjet[i]).M() );
         Heta_hist->Fill( (qqgjet[i]).Eta() );
         Hpt_hist->Fill( (qqgjet[i]).Pt() );
 	}
@@ -465,19 +516,19 @@ void tprimeAnalisis::Loop()
 	for( int c = 0; c <  qwjet.size(); c++ ){
         pt_qwt_hist->Fill( (qwjet[c]).Pt() );
         eta_qwt_hist->Fill( (qwjet[c]).Eta() );
-        im_qwt_hist->Fill( (qwjet[c]).M() );
+//      im_qwt_hist->Fill( (qwjet[c]).M() );
 	}
 	
 	for( int c = 0; c < bhTjet.size(); c++ ){
         pt_bhT_hist->Fill( (bhTjet[c]).Pt() );
         eta_bhT_hist->Fill( (bhTjet[c]).Eta() );
-        im_bhT_hist->Fill( (bhTjet[c]).M() );
+//      im_bhT_hist->Fill( (bhTjet[c]).M() );
 	}
 
 	if( btTvec.Pt() > 0 ){
         pt_btT_hist->Fill( btTvec.Pt() );
         eta_btT_hist->Fill( btTvec.Eta() );
-        im_btT_hist->Fill( btTvec.M() );
+//      im_btT_hist->Fill( btTvec.M() );
 	}
 	
 	if( dr_tmin > 0 ) dr_tmin_hist->Fill( dr_tmin );
@@ -490,12 +541,12 @@ void tprimeAnalisis::Loop()
 	if( (hTvec.Pt() > 0) && ( dr_h > 0 ) ) drvpt_higgs_hist->Fill( hTvec.Pt(), dr_h );
         if( (wtTvec.Pt() > 0) && ( dr_w > 0 ) ) drvpt_w_hist->Fill( wtTvec.Pt(), dr_w );
 
-	for( int c = 0; c < qqgjet.size(); c++ ){ ptvseta_qqg_hist->Fill( (qqgjet[c]).Pt(), (qqgjet[c]).Eta() );}
-        if( btTvec.Pt() > 0 ) ptvseta_btT_hist->Fill( btTvec.Pt(), btTvec.Eta() );
-        if( bgvec.Pt() > 0 ) ptvseta_bg_hist->Fill( bgvec.Pt(),  bgvec.Eta() );
+	for( int c = 0; c < qqgjet.size(); c++ ){ ptvseta_qqg_hist->Fill( (qqgjet[c]).Pt(), (qqgjet[c]).Eta() ); ptvseta_all_hist->Fill( (qqgjet[c]).Pt(), (qqgjet[c]).Eta() );}
+        if( btTvec.Pt() > 0 ){ ptvseta_btT_hist->Fill( btTvec.Pt(), btTvec.Eta() ); ptvseta_all_hist->Fill( btTvec.Pt(), btTvec.Eta() );}
+        if( bgvec.Pt() > 0 ){ ptvseta_bg_hist->Fill( bgvec.Pt(),  bgvec.Eta() ); ptvseta_all_hist->Fill( bgvec.Pt(),  bgvec.Eta() );}
 	
-	for( int c = 0; c < qwjet.size(); c++ ){ ptvseta_qwt_hist->Fill( qwjet[c].Pt(),  qwjet[c].Eta() );}
-        for( int c = 0; c < bhTjet.size(); c++ ){ ptvseta_bhT_hist->Fill( bhTjet[c].Pt(),  bhTjet[c].Eta() );}	
+	for( int c = 0; c < qwjet.size(); c++ ){ ptvseta_qwt_hist->Fill( qwjet[c].Pt(),  qwjet[c].Eta() ); ptvseta_all_hist->Fill( qwjet[c].Pt(), qwjet[c].Eta() );}
+        for( int c = 0; c < bhTjet.size(); c++ ){ ptvseta_bhT_hist->Fill( bhTjet[c].Pt(),  bhTjet[c].Eta() );ptvseta_all_hist->Fill( bhTjet[c].Pt(), bhTjet[c].Eta() );}	
 
 	Ht_hist->Fill( Ht );
 //	Heta_hist->Fill( Heta );
@@ -503,12 +554,14 @@ void tprimeAnalisis::Loop()
 
  	}//<<<<<<  cuts  if pass cuts
 
+	wjet.clear();
         qwjet.clear();
         bhTjet.clear();
         qqgjet.clear();
         tjet.clear();
         bjet.clear();
         otherjet.clear();
+	htjet.clear();
        
 //        cout << "Event Finished" << endl;   
     }// calc values and fill histograms
@@ -633,12 +686,13 @@ void tprimeAnalisis::Loop()
     TCanvas *c43 = drawPrint2D(ptvseta_bg_hist, "Pt vs Eta of Bottom from Gluon Jet", "Pt (GeV)", "DeltaR", savename);
     TCanvas *c44 = drawPrint2D(ptvseta_qwt_hist, "Pt vs Eta of Quark from W Jet", "Pt (GeV)", "DeltaR", savename);
     TCanvas *c45 = drawPrint2D(ptvseta_btT_hist, "Pt vs Eta of Bottom from Top Jet", "Pt (GeV)", "DeltaR", savename);
-    canlist.push_back( c41 );canlist.push_back( c42 );canlist.push_back( c43 );canlist.push_back( c44 );canlist.push_back( c45 );
+    TCanvas *c47 = drawPrint2D(ptvseta_all_hist, "Pt vs Eta of all Final Jets", "Pt (GeV)", "DeltaR", savename);
+    canlist.push_back( c41 );canlist.push_back( c42 );canlist.push_back( c43 );canlist.push_back( c44 );canlist.push_back( c45 );canlist.push_back( c47 );
 
     cout << "Writing log file" << endl;  //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     ofstream  out;
-    string fileName = savename + "_" + "log.txt";
-    char* temp = new char[ fileName.length() + 1 ];
+    fileName = savename + "_" + "log.txt";
+    temp = new char[ fileName.length() + 1 ];
     strcpy( temp, fileName.c_str() );
     out.open( temp );
 
@@ -661,6 +715,7 @@ void tprimeAnalisis::Loop()
     int tnutrino = 16;
 */
     out << "For File: " << savename << endl;
+    out << "Number of Jets in Ht_jets Collection : " << htjetsize << endl;
     out << "Number of quarks from W  found: " << qwcnt << endl;
     out << "Number of Tprime   found: " << Tcnt << endl;/////
     out << "Number of top from Tprime found: " << tTcnt << endl;/////
@@ -691,7 +746,7 @@ void tprimeAnalisis::Loop()
 
     cout << "Cleaning Up" << endl;
     cout << "Deleteing Canvas" << endl;
-    for( int cl = 0; cl < canlist.size(); cl++ ){ delete canlist[cl]; }	
+    for( int cl = 0; cl < canlist.size(); cl++ ){ (canlist[cl])->Close(); delete canlist[cl]; }	
     cout << "Deleting TH1D" << endl;
     for( int cl = 0; cl < thlist.size(); cl++ ){ delete thlist[cl]; }    
     cout << "Deleteing TH2Ds" << endl;
@@ -732,27 +787,38 @@ void runana( ){
 
 
 	vector<string> rootname;
-	rootname.push_back( myrootname0 );
-	rootname.push_back( myrootname1 );
-	rootname.push_back( myrootname2 );
-	rootname.push_back( myrootname3 );
-	rootname.push_back( myrootname4 );
-	rootname.push_back( myrootname5 );
-	rootname.push_back( myrootname6 );
-	rootname.push_back( myrootname7 );
+	rootname.push_back( myrootname0 );// done
+	rootname.push_back( myrootname1 );//done
+	rootname.push_back( myrootname2 );//done
+	rootname.push_back( myrootname3 );//done
+	rootname.push_back( myrootname4 );//done
+	rootname.push_back( myrootname5 );//done
+	rootname.push_back( myrootname6 );//done
+	rootname.push_back( myrootname7 );//done
+	rootname.push_back( "ttbar_background" );
 
-//   loop on cut types - add internal ref and cut varibles
-	for( int htloop = 0; htloop < 2; htloop++){
+	int filenum = 8;
+
+//     for( int filenum = 0; filenum < rootname.size(); filenum++ ){
+
+
+                cout << "Making Analysis Class " << rootname[filenum] << endl;
+                tprimeAnalisis *tana = new tprimeAnalisis( rootname[filenum] );
+
+//      loop on cut types - add internal ref and cut varibles
+ 	for( int htloop = 0; htloop < 2; htloop++){
 		for( int higdrloop = 0; higdrloop < 2; higdrloop++ ){
 			for( int toploop = 0; toploop < 2; toploop++ ){
 				for( int topdrloop = 0; topdrloop < 2; topdrloop++ ){
 
+//	1010 
+//	int htloop = 1;
+//	int higdrloop = 0;
+//	int toploop = 1;
+//	int topdrloop = 0;
 
-   	for( int filenum = 0; filenum < rootname.size(); filenum++ ){
-		cout << "Making Analysis Class " << rootname[filenum] << endl;
-		tprimeAnalisis *tana = new tprimeAnalisis( rootname[filenum] );
-		cout << "Seting Cuts" << endl;
-		tana->bkgrd = false;
+		cout << "Setting Cuts" << endl;
+		tana->bkgrd = true;
                 tana->cutlevel = 3;
                 tana->dodrhig = higdrc[higdrloop];
                 tana->dodrtop = topdrc[topdrloop];
@@ -761,11 +827,14 @@ void runana( ){
                 tana->hig_cut = higc;
 		cout << "Running Analysis" << endl;
 		tana->Loop();
-		delete tana;	
-	   }
-
 //    end cut tyoes loop ( 16 flavors )
+				}
+			}
+		}
+	} // end of cut loops
+		delete tana;
 
+//   }//  file loop
    cout << "Thats all Folks!" << endl;
    return;
 }

@@ -126,6 +126,123 @@ public :
    int 		  top_cut;
    int 		  hig_cut;
 
+   string higdr;
+   string topdr;
+   string cuttype; // = "_ht" + itostr( ht_cut ) + "_hig" + itostr( hig_cut ) + "dr" + higdr + "_top" + itostr( top_cut ) + "dr" + topdr;
+
+    int htcut;
+    int higgscut;
+    int topcut;
+    int xjetcut;
+
+    string cutname[5];// = { "_none", "_htcut", "_higgscut", "_topcut", "_xjetcut" };
+
+    Long64_t nentries; // = fChain->GetEntriesFast();
+
+
+/////////////////////////////////////////
+
+    int dnc;
+    int none;
+    int down;
+    int up;
+    int strange;
+    int charm;
+    int bottom;
+    int top;
+    int bprime;
+    int tprime;
+
+    int electron;
+    int enutrino;
+    int muon;
+    int mnutrino;
+    int tau;
+    int tnutrino;
+
+    int gluon;
+    int photon;
+    int zee;
+    int w;
+    int higgs;
+    int hplus;
+
+
+
+//////////////////////////////////////
+
+    int qwcnt;  //  quark from W bosun
+    int Tcnt; //  Tprime
+    int tTcnt; // top from a Tprime
+    int tcnt;  //  top ( Parantage not checked )
+    int bhTcnt; // bottom from higgs
+    int btTcnt; //  bottom from top
+    int bcnt; // bottom ( paratage not checked ) 
+    int hTcnt;  //  higgs from Tprime
+    int wtTcnt; // W from a top
+    int qqcnt; // quark from a quark
+    int bgcnt; // bottom from a gluon
+    int evcnt; //  event count
+    int ltjetcnt; //  ljet with W parent
+    int otherjetcnt; // ljet ( paratage not checked )
+
+    double Ht;
+    double Ht_pe;
+    int htjetsize;
+    int part;
+
+    vector<TLorentzVector> qwjet;  //  q from w
+    vector<TLorentzVector> bhTjet; //  b from h
+    vector<TLorentzVector> qqgjet;  //  q from q 
+    vector<TLorentzVector> tjet;
+    vector<TLorentzVector> bjet;
+    vector<TLorentzVector> otherjet;
+    vector<TLorentzVector> wjet;
+    vector<TLorentzVector> transjet;
+    vector<TLorentzVector> htjet;
+
+    vector<int> bglist;
+    vector<int> qjet;
+    vector<int> qglist;
+    vector<int> ljet;
+
+    int ljetpartcnt[17]; // = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    int otherpartcnt[17]; // = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    int allcnt[25]; // = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+    vector<TH1D*> thlist;
+    vector<TH2D*> th2list;
+
+        //TLorentzVector Declarations
+        TLorentzVector tTvec;
+        TLorentzVector wtTvec;
+        TLorentzVector hTvec;
+        TLorentzVector Tvec;
+        TLorentzVector btTvec;
+        TLorentzVector bgvec;
+
+        TLorentzVector vReturn;
+        int charg;
+
+     Long64_t nbytes, nb;
+
+       // delta_R_top
+        double dr1;
+        double dr2;
+        double dr3;
+        double dr_tmax;
+        double dr_tmin;
+        double dr_wb;
+        double dr_h;
+        double dr_w;
+
+        Long64_t ientry;
+
+        string fileName;
+        char* temp;
+
+
+
    tprimeAnalisis( TTree *tree = 0 );
    tprimeAnalisis( string rootname  );
    virtual ~tprimeAnalisis();
@@ -139,7 +256,7 @@ public :
    virtual bool	    get2Vector( int x, int particle, int mother, int granny, TLorentzVector &vectorReturn, int &charg );
    virtual bool	    get2VectorFromJet( int x, vector<int> &partlist, int mother, int granny, TLorentzVector &vectorReturn, int &charg, int &part );
    virtual bool     get2VectorFromLists( int numpart, vector<int> particle, vector<int> mother, int granny, TLorentzVector &vectorReturn, int &charg, int &part );
-   virtual bool     passcut( int cutrun, TLorentzVector &hTvec, double dr_h, TLorentzVector &tTvec, double dr_wb, double Ht, int htcut, int higgscut, int topcut  );
+   virtual bool     passcut( int cutrun, TLorentzVector &hTvec, double dr_h, TLorentzVector &tTvec, double dr_wb, double Ht, int &htcut, int &higgscut, int &topcut  );
    virtual bool     cktopcut( TLorentzVector &tTvec, double dr_wb );
    virtual bool     ckhiggscut( TLorentzVector &hTvec, double dr_h );
    virtual double   pt30_eta5_HtBounds( TLorentzVector &vec );
@@ -183,10 +300,10 @@ tprimeAnalisis::tprimeAnalisis( string rootname ) : fChain(0)
          f = new TFile( myrootfile.c_str());
       }
       f->GetObject("LHEF",tree);
-
    }
    Init(tree);
    rootfilename = rootname;
+
 }
 
 
@@ -304,4 +421,10 @@ Int_t tprimeAnalisis::Cut(Long64_t entry)
 // returns -1 otherwise.
    return 1;
 }
+
+
+
+
+
+
 #endif // #ifdef tprimeAnalisis_cxx

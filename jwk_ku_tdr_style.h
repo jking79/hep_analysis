@@ -1,4 +1,6 @@
 #include "TStyle.h"
+#include "stdlib.h"
+#include <sstream>
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -23,6 +25,13 @@
 int can_x_width = 1000;
 int can_y_width = 600;
 
+string itostr( int num )
+{
+	stringstream ss;
+	ss << num;
+	string result(ss.str());
+	return result;
+}
 
 string rpsb(string temp)
 {
@@ -220,12 +229,12 @@ void setTDRStyle() {
   tdrStyle->SetOptStat(1); // To display the mean and RMS:   SetOptStat("mr");
   tdrStyle->SetStatColor(kWhite);
   tdrStyle->SetStatFont(22);
-  tdrStyle->SetStatFontSize(0.03);
+  tdrStyle->SetStatFontSize(0.025);
   tdrStyle->SetStatTextColor(1);
   tdrStyle->SetStatFormat("6.4g");
   tdrStyle->SetStatBorderSize(1);
-  tdrStyle->SetStatH(0.20);
-  tdrStyle->SetStatW(0.25);
+  tdrStyle->SetStatH(0.01);
+  tdrStyle->SetStatW(0.15);
   // tdrStyle->SetStatStyle(Style_t style = 1001);
   tdrStyle->SetStatX( 0.825 );
   tdrStyle->SetStatY( 0.85 );
@@ -266,7 +275,7 @@ void setTDRStyle() {
 // For the axis labels:
 
   tdrStyle->SetLabelColor(1, "XYZ");
-  tdrStyle->SetLabelFont(20, "XYZ");
+  tdrStyle->SetLabelFont(22, "XYZ");
   tdrStyle->SetLabelOffset(0.007, "XYZ");
   tdrStyle->SetLabelSize(0.06, "XYZ");
 
